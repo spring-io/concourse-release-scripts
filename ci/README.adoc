@@ -1,0 +1,28 @@
+== Concourse pipeline
+
+You can first login with Concourse:
+
+[source]
+----
+$ fly -t release-scripts login -n concourse-release-scripts -c https://ci.spring.io
+----
+
+The pipeline can be deployed using the following command:
+
+[source]
+----
+$ fly -t release-scripts set-pipeline -p concourse-release-scripts -c ci/pipeline.yml -l ci/parameters.yml
+----
+
+NOTE: This assumes that you have credhub integration configured with the appropriate
+secrets.
+
+=== Release
+
+To release a GA:
+
+[source]
+----
+$ fly -t release-scripts trigger-job -j concourse-release-scripts/stage-release
+$ fly -t release-scripts trigger-job -j concourse-release-scripts/promote-release
+----

@@ -1,0 +1,121 @@
+resource_types:
+- name: artifactory-resource
+  type: docker-image
+  source:
+    repository: springio/artifactory-resource
+    tag: 0.0.12
+resources:
+- name: git-repo
+  type: git
+  icon: github-circle
+  source:
+    uri: ((github-repo))
+    username: ((github-username))
+    password: ((github-password))
+    branch: ((branch))
+- name: ci-images-git-repo
+  type: git
+  icon: github-circle
+  source:
+    uri: ((github-repo))
+    branch: ((branch))
+    paths: ["ci/images/*"]
+- name: concourse-release-scripts-ci-image
+  type: docker-image
+  icon: docker
+  source:
+    repository: ((docker-hub-organization))/concourse-release-scripts-ci-image
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    tag: 0.1.x
+- name: artifactory-repo
+  type: artifactory-resource
+  icon: package-variant
+  source:
+    uri: ((artifactory-server))
+    username: ((artifactory-username))
+    password: ((artifactory-password))
+    build_name: ((build-name))
+jobs:
+- name: build-ci-image
+  plan:
+  - get: ci-images-git-repo
+    trigger: true
+  - put: concourse-release-scripts-ci-image
+    params:
+      build: ci-images-git-repo/ci/images
+      dockerfile: ci-images-git-repo/ci/images/concourse-release-scripts-ci-image/Dockerfile
+- name: build
+  serial: true
+  public: true
+  plan:
+  - get: concourse-release-scripts-ci-image
+  - get: git-repo
+    trigger: true
+  - do:
+    - task: build-project
+      privileged: true
+      timeout: ((task-timeout))
+      image: concourse-release-scripts-ci-image
+      file: git-repo/ci/tasks/build-project.yml
+      params:
+        BRANCH: ((branch))
+  - put: artifactory-repo
+    params: &artifactory-params
+      repo: libs-snapshot-local
+      folder: distribution-repository
+      build_uri: "https://ci.spring.io/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+      build_number: "${BUILD_PIPELINE_NAME}-${BUILD_JOB_NAME}-${BUILD_NAME}"
+      disable_checksum_uploads: true
+      threads: 8
+    get_params:
+      threads: 8
+- name: stage-release
+  serial: true
+  plan:
+  - get: concourse-release-scripts-ci-image
+  - get: git-repo
+    trigger: false
+  - task: stage
+    image: concourse-release-scripts-ci-image
+    file: git-repo/ci/tasks/stage.yml
+    params:
+      RELEASE_TYPE: RELEASE
+  - put: artifactory-repo
+    params:
+      <<: *artifactory-params
+      repo: libs-staging-local
+  - put: git-repo
+    params:
+      repository: stage-git-repo
+- name: promote-release
+  serial: true
+  plan:
+  - get: concourse-release-scripts-ci-image
+  - get: git-repo
+    trigger: false
+  - get: artifactory-repo
+    trigger: false
+    passed: [stage-release]
+    params:
+      download_artifacts: false
+      save_build_info: true
+  - task: promote
+    image: concourse-release-scripts-ci-image
+    file: git-repo/ci/tasks/promote.yml
+    params:
+      RELEASE_TYPE: RELEASE
+      ARTIFACTORY_SERVER: ((artifactory-server))
+      ARTIFACTORY_USERNAME: ((artifactory-username))
+      ARTIFACTORY_PASSWORD: ((artifactory-password))
+      BINTRAY_SUBJECT: ((bintray-subject))
+      BINTRAY_REPO: ((bintray-repo))
+      BINTRAY_USERNAME: ((bintray-username))
+      BINTRAY_API_KEY: ((bintray-api-key))
+groups:
+- name: "Build"
+  jobs: ["build"]
+- name: "Release"
+  jobs: ["stage-release", "promote-release"]
+- name: "CI Images"
+  jobs: ["build-ci-image"]
