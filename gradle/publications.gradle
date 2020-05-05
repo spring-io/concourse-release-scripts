@@ -1,0 +1,57 @@
+apply plugin: "maven-publish"
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifact bootJar
+			pom {
+				afterEvaluate {
+					name = project.description
+					description = project.description
+				}
+				url = "https://github.com/spring-io/concourse-release-scripts"
+				organization {
+					name = "Spring IO"
+					url = "https://github.com/spring-io/concourse-release-scripts"
+				}
+				licenses {
+					license {
+						name = "Apache License, Version 2.0"
+						url = "https://www.apache.org/licenses/LICENSE-2.0"
+						distribution = "repo"
+					}
+				}
+				scm {
+					url = "https://github.com/spring-io/concourse-release-scripts"
+					connection = "scm:git:git://github.com/spring-io/concourse-release-scripts"
+					developerConnection = "scm:git:git://github.com/spring-io/concourse-release-scripts"
+				}
+				developers {
+					developer {
+						id = "bclozel"
+						name = "Brian Clozel"
+						email = "bclozel@pivotal.io"
+					}
+				}
+				issueManagement {
+					system = "GitHub"
+					url = "https://github.com/spring-io/concourse-release-scripts/issues"
+				}
+			}
+		}
+	}
+}
+
+configureDeploymentRepository(project)
+
+void configureDeploymentRepository(Project project) {
+	project.plugins.withType(MavenPublishPlugin.class).all {
+		PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
+		if (project.hasProperty("deploymentRepository")) {
+			publishing.repositories.maven {
+				it.url = project.property("deploymentRepository")
+				it.name = "deployment"
+			}
+		}
+	}
+}

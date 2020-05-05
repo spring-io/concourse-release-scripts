@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("io.spring.javaformat:spring-javaformat-gradle-plugin:0.0.21")
+    }
+}
+
+plugins {
+	id 'org.springframework.boot' version '2.2.6.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'java'
+}
+
+apply plugin: 'io.spring.javaformat'
+apply from: "$rootDir/gradle/publications.gradle"
+
+group = 'io.spring.concourse.releasescripts'
+version = '0.1.0-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-json'
+	implementation 'org.springframework:spring-web'
+    implementation 'org.awaitility:awaitility'
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
