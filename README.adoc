@@ -1,0 +1,108 @@
+= Concourse Release Scripts
+
+A Spring Boot application for distributing build artifacts to public repositories.
+
+== Overview
+
+The Concourse Release Scripts application can be included in Concourse container build images to distribute build artifacts to public repositories.
+
+This is a command line application and it should be used as such in build scripts.
+
+To interact with Artifactory repositories in Concourse, usage of the https://github.com/spring-io/artifactory-resource[Concourse Artifactoy Resource] is recommended.
+
+== Configuration Properties
+
+This application interacts with Artifactory, Bintray and Maven Central.
+The corresponding credentials must be provided using configuration properties:
+
+[source,yml,subs="verbatim,attributes"]
+.Artifactory Configuration Properties
+----
+artifactory:
+  username: # Artifactory credentials, username
+  password: # Artifactory credentials, password
+  # server property is currently locked on https://repo.spring.io
+----
+
+[source,yml,subs="verbatim,attributes"]
+.Bintray Configuration Properties
+----
+bintray:
+  username: # Bintray credentials, username
+  api-key:  # Bintray credentials, API key
+  repo:     # Bintray repository name, e.g. "example-jars"
+  subject:  # Bintray subject name
+----
+
+For more information about Bintray concepts, check out https://bintray.com/docs/api/[the Bintray REST API documentation].
+
+[source,yml,subs="verbatim,attributes"]
+.Sonatype Configuration Properties
+----
+sonatype:
+  username: # Sonatype username
+  password: # Sonatype password
+----
+
+
+== Commands
+
+The Concourse Release Scripts application supports several commands:
+
+* `promote`, to move the build artifacts to a target repository in Artifactory.
+* `distribute`, to deploy builds from Artifactory to Bintray.
+* `publishGradlePlugin`, to add attributes to the Spring Boot Gradle plugin.
+* `syncToMavenCentral`, to sync artifacts to Maven Central.
+
+
+[source,sh,subs="verbatim,attributes"]
+.Command example
+----
+java -jar /spring-boot-release-scripts.jar $COMMAND $RELEASE_TYPE $BUILD_INFO_LOCATION
+----
+
+Where:
+
+* `$COMMAND` is the command name: `promote`, `distribute`, `publishGradlePlugin` or `syncToMavenCentral`
+* `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
+* `$BUILD_INFO_LOCATION` should point to the absolute location of the artifactory build file info (e.g. `/local-repository/build-info.json`)
+
+
+=== Promote command
+
+Command used to move the build artifacts to a target repository in Artifactory.
+This steps usually happens after the staging of artifacts on Artifactory. This step can be done with the https://github.com/spring-io/artifactory-resource[Concourse Artifactoy Resource].
+
+This command sends a request to the Artifactory REST API to promote artifacts from a staging repository to a target repository.
+
+=== Distribute command
+
+Command used to deploy builds from Artifactory to Bintray.
+This step usually happens after a version promotion.
+
+This command sends a request to the Artifactory REST API in order to request the distribution of artifacts from the source repository to the `"spring-distributions"` Bintray repository.
+Once the request initiated, the command polls regularly the Bintray API to check whether the distribution is complete.
+The command fails is the distrubtion is not completed within 40 minutes.
+
+=== Publish Gradle Plugin Command
+
+Command used to add attributes to the Spring Boot Gradle plugin.
+This step usually happens after a version distribution.
+
+This command sends a request to the Bintray REST API in order to add the following property to the release:
+
+[source,json,subs="verbatim,attributes"]
+.Sonatype Configuration Properties
+----
+{
+  "name": "gradle-plugin",
+  "values": ["org.springframework.boot:org.springframework.boot:spring-boot-gradle-plugin"]
+}
+----
+
+=== Sync To Maven Central Command
+
+Command used to sync artifacts to Maven Central.
+This step usually happens after a version distribution.
+
+This command sends a request to the Bintray REST API to request the synchronization for this release from Bintray to Maven Central.
