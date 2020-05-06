@@ -17,7 +17,6 @@ apply plugin: 'io.spring.javaformat'
 apply from: "$rootDir/gradle/publications.gradle"
 
 group = 'io.spring.concourse.releasescripts'
-version = '0.1.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 repositories {
