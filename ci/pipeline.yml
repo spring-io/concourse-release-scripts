@@ -98,7 +98,7 @@ jobs:
     trigger: false
     passed: [stage-release]
     params:
-      download_artifacts: false
+      download_artifacts: true
       save_build_info: true
   - task: promote
     image: concourse-release-scripts-ci-image
