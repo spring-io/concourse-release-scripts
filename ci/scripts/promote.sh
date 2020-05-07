@@ -10,7 +10,5 @@ cp $released /concourse-release-scripts.jar
 
 java -jar /concourse-release-scripts.jar promote $RELEASE_TYPE $BUILD_INFO_LOCATION > /dev/null || { exit 1; }
 
-java -jar /concourse-release-scripts.jar distribute $RELEASE_TYPE $BUILD_INFO_LOCATION > /dev/null || { exit 1; }
-
 echo "Promotion complete"
 echo $version > version/version
