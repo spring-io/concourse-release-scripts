@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20200526
+FROM ubuntu:bionic-20200713
 
 RUN apt-get update
 RUN apt-get install --no-install-recommends -y ca-certificates net-tools git curl jq
@@ -8,6 +8,6 @@ ENV JAVA_HOME /opt/openjdk
 ENV PATH $JAVA_HOME/bin:$PATH
 RUN mkdir -p /opt/openjdk && \
     cd /opt/openjdk && \
-    curl -L https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u252-b09/OpenJDK8U-jdk_x64_linux_hotspot_8u252b09.tar.gz | tar xz --strip-components=1
+    curl -L https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u265-b01/OpenJDK8U-jdk_x64_linux_hotspot_8u265b01.tar.gz | tar xz --strip-components=1
 
 ADD https://raw.githubusercontent.com/spring-io/concourse-java-scripts/v0.0.3/concourse-java.sh /opt/
