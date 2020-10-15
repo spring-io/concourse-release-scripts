@@ -7,10 +7,19 @@ A Spring Boot application for distributing build artifacts to public repositorie
 The Concourse Release Scripts application can be included in Concourse container build images to distribute build artifacts to public repositories.
 
 This is a command line application and it should be used as such in build scripts.
+To configure the app, you can add an `application.yml` file in the same folder or in `./config`; for more on that, see the
+https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-application-property-files[Spring Boot reference documentation].
+The available configuration options are described in te <<Configuration Properties>> section.
+
+[source,sh,subs="verbatim,attributes"]
+.Launching the application on the CLI
+----
+java -jar ./concourse-release-scripts.jar $COMMAND [$ARG...]
+----
 
 To interact with Artifactory repositories in Concourse, usage of the https://github.com/spring-io/artifactory-resource[Concourse Artifactoy Resource] is recommended.
 
-== Configuration Properties
+== Authentication
 
 This application interacts with Artifactory, Bintray and Maven Central.
 The corresponding credentials must be provided using configuration properties:
@@ -82,7 +91,18 @@ This step usually happens after a version promotion.
 
 This command sends a request to the Artifactory REST API in order to request the distribution of artifacts from the source repository to the `"spring-distributions"` Bintray repository.
 Once the request initiated, the command polls regularly the Bintray API to check whether the distribution is complete.
-The command fails is the distrubtion is not completed within 40 minutes.
+The command fails is the distribution is not completed within 40 minutes.
+
+You can also mark artifacts as optional deployments (they won't be deployed to Bintray) with the `distribute.optional-deployments` configuration key:
+
+[source,yml,subs="verbatim,attributes"]
+.Distribute Optional Deployments
+----
+distribute:
+  optional-deployments:
+    - '.*\\.zip'
+    - 'spring-boot-project-\\d+\\.\\d+\\.\\d+(?:\\.RELEASE)?\\.pom'
+----
 
 === Publish Gradle Plugin Command
 
