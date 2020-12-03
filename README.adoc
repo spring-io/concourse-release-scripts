@@ -53,6 +53,14 @@ sonatype:
   password: # Sonatype password
 ----
 
+[source,yml,subs="verbatim,attributes"]
+.SDKMAN! Configuration Properties
+----
+sdkman:
+  consumer-key: # SDKMAN! Consumer Key
+  consumer-token: # SDKMAN! Consumer Token
+----
+
 
 == Commands
 
@@ -61,6 +69,7 @@ The Concourse Release Scripts application supports several commands:
 * `promote`, to move the build artifacts to a target repository in Artifactory.
 * `distribute`, to deploy builds from Artifactory to Bintray.
 * `publishGradlePlugin`, to add attributes to the Spring Boot Gradle plugin.
+* `publishToSdkMan`, to publish the Spring Boot CLI to SDKMAN!.
 * `syncToMavenCentral`, to sync artifacts to Maven Central.
 
 
@@ -119,6 +128,21 @@ This command sends a request to the Bintray REST API in order to add the followi
   "values": ["org.springframework.boot:org.springframework.boot:spring-boot-gradle-plugin"]
 }
 ----
+
+=== Publish the Spring Boot CLI to SDKMAN!
+
+[source,sh,subs="verbatim,attributes"]
+.Command example
+----
+java -jar /spring-boot-release-scripts.jar publishToSdkman $RELEASE_TYPE $VERSION $BRANCH
+----
+
+Where:
+
+* `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
+* `$VERSION` the actual artifact version
+* `$BRANCH` the git branch the artifact is being tagged and released from
+
 
 === Sync To Maven Central Command
 
