@@ -88,6 +88,8 @@ public class DistributeCommand implements Command {
 			}
 		}
 		ReleaseInfo releaseInfo = ReleaseInfo.from(buildInfo);
+		logger.debug("Optional deployments configured for " + this.optionalDeployments.stream().map(Pattern::toString)
+				.collect(Collectors.joining("', '", "'", "'")));
 		Set<String> artifactDigests = buildInfo.getArtifactDigests(this::isIncluded);
 		this.artifactoryService.distribute(type.getRepo(), releaseInfo, artifactDigests);
 	}
@@ -96,6 +98,8 @@ public class DistributeCommand implements Command {
 		String path = artifact.getName();
 		for (Pattern optionalDeployment : this.optionalDeployments) {
 			if (optionalDeployment.matcher(path).matches()) {
+				logger.debug(
+						"Artifact '" + path + "' is marked as optional with '" + optionalDeployment.toString() + "'");
 				return false;
 			}
 		}
