@@ -22,6 +22,7 @@ import io.spring.concourse.releasescripts.ReleaseInfo;
 import io.spring.concourse.releasescripts.artifactory.ArtifactoryService;
 import io.spring.concourse.releasescripts.bintray.BintrayService;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,6 +43,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
  */
 class PublishGradlePluginTests {
 
+	private AutoCloseable mocks;
+
 	@Mock
 	private BintrayService service;
 
@@ -51,9 +54,14 @@ class PublishGradlePluginTests {
 
 	@BeforeEach
 	void setup() {
-		MockitoAnnotations.initMocks(this);
+		this.mocks = MockitoAnnotations.openMocks(this);
 		this.objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		this.command = new PublishGradlePlugin(this.service, objectMapper);
+	}
+
+	@AfterEach
+	void cleanup() throws Exception {
+		this.mocks.close();
 	}
 
 	@Test

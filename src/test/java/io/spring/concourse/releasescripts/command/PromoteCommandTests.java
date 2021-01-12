@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.spring.concourse.releasescripts.ReleaseInfo;
 import io.spring.concourse.releasescripts.ReleaseType;
 import io.spring.concourse.releasescripts.artifactory.ArtifactoryService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +42,8 @@ import static org.mockito.Mockito.verify;
  */
 class PromoteCommandTests {
 
+	private AutoCloseable mocks;
+
 	@Mock
 	private ArtifactoryService service;
 
@@ -50,9 +53,14 @@ class PromoteCommandTests {
 
 	@BeforeEach
 	void setup() {
-		MockitoAnnotations.initMocks(this);
+		this.mocks = MockitoAnnotations.openMocks(this);
 		this.objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		this.command = new PromoteCommand(this.service, this.objectMapper);
+	}
+
+	@AfterEach
+	void cleanup() throws Exception {
+		this.mocks.close();
 	}
 
 	@Test

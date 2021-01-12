@@ -25,6 +25,7 @@ import io.spring.concourse.releasescripts.ReleaseInfo;
 import io.spring.concourse.releasescripts.ReleaseType;
 import io.spring.concourse.releasescripts.artifactory.ArtifactoryService;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,6 +48,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
  */
 class DistributeCommandTests {
 
+	private AutoCloseable mocks;
+
 	@Mock
 	private ArtifactoryService service;
 
@@ -56,11 +59,16 @@ class DistributeCommandTests {
 
 	@BeforeEach
 	void setup() {
-		MockitoAnnotations.initMocks(this);
+		this.mocks = MockitoAnnotations.openMocks(this);
 		DistributeProperties distributeProperties = new DistributeProperties();
 		distributeProperties.setOptionalDeployments(Arrays.asList(".*\\.zip", "demo-\\d\\.\\d\\.\\d\\.doc"));
 		this.objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		this.command = new DistributeCommand(this.service, this.objectMapper, distributeProperties);
+	}
+
+	@AfterEach
+	void cleanup() throws Exception {
+		this.mocks.close();
 	}
 
 	@Test

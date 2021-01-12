@@ -18,6 +18,7 @@ package io.spring.concourse.releasescripts.command;
 
 import io.spring.concourse.releasescripts.sdkman.SdkmanService;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -37,6 +38,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
  */
 class PublishToSdkmanCommandTests {
 
+	private AutoCloseable mocks;
+
 	@Mock
 	private SdkmanService service;
 
@@ -44,8 +47,13 @@ class PublishToSdkmanCommandTests {
 
 	@BeforeEach
 	void setup() {
-		MockitoAnnotations.initMocks(this);
+		this.mocks = MockitoAnnotations.openMocks(this);
 		this.command = new PublishToSdkmanCommand(this.service);
+	}
+
+	@AfterEach
+	void cleanup() throws Exception {
+		this.mocks.close();
 	}
 
 	@Test
