@@ -21,7 +21,7 @@ To interact with Artifactory repositories in Concourse, usage of the https://git
 
 == Authentication
 
-This application interacts with Artifactory, Bintray and Maven Central.
+This application interacts with Artifactory and Maven Central.
 The corresponding credentials must be provided using configuration properties:
 
 [source,yml,subs="verbatim,attributes"]
@@ -34,23 +34,13 @@ artifactory:
 ----
 
 [source,yml,subs="verbatim,attributes"]
-.Bintray Configuration Properties
-----
-bintray:
-  username: # Bintray credentials, username
-  api-key:  # Bintray credentials, API key
-  repo:     # Bintray repository name, e.g. "example-jars"
-  subject:  # Bintray subject name
-----
-
-For more information about Bintray concepts, check out https://bintray.com/docs/api/[the Bintray REST API documentation].
-
-[source,yml,subs="verbatim,attributes"]
 .Sonatype Configuration Properties
 ----
 sonatype:
-  username: # Sonatype username
-  password: # Sonatype password
+  user_token: # Sonatype usern token.
+  password_token: # Sonatype password token.
+  url: # URL of the Nexus instance used to publish releases.
+  staging_profile_id: # ID of the staging profile used to publish releases.
 ----
 
 [source,yml,subs="verbatim,attributes"]
@@ -66,11 +56,9 @@ sdkman:
 
 The Concourse Release Scripts application supports several commands:
 
+* `publishToCentral`, to publish artifacts to Maven Central.
 * `promote`, to move the build artifacts to a target repository in Artifactory.
-* `distribute`, to deploy builds from Artifactory to Bintray.
-* `publishGradlePlugin`, to add attributes to the Spring Boot Gradle plugin.
 * `publishToSdkMan`, to publish the Spring Boot CLI to SDKMAN!.
-* `syncToMavenCentral`, to sync artifacts to Maven Central.
 
 
 [source,sh,subs="verbatim,attributes"]
@@ -86,6 +74,38 @@ Where:
 * `$BUILD_INFO_LOCATION` should point to the absolute location of the artifactory build file info (e.g. `/local-repository/build-info.json`)
 
 
+=== Publish To Maven Central Command
+
+Command used to publish artifacts to Maven Central using the OSS Sonatype instance.
+The release is published by creating a staging repository and deploying to it the artifacts at the given `$ARTIFACTS_LOCATION`.
+The repository is then closed and, upon successfully closure, it is released.
+
+[source,sh,subs="verbatim,attributes"]
+.Command example
+----
+java -jar /spring-boot-release-scripts.jar publishToMavenCentral $RELEASE_TYPE $BUILD_INFO_LOCATION $ARTIFACTS_LOCATION
+----
+
+Where:
+
+* `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
+* `$BUILD_INFO_LOCATION` should point to the absolute location of the artifactory build file info (e.g. `/local-repository/build-info.json`)
+* `$ARTIFACTS_LOCATION` the location of the local artifact repository (e.g. `local-repository`)
+
+There are additional configuration properties available for tuning the publishing process:
+
+[source,yml,subs="verbatim,attributes"]
+.Sonatype Configuration Properties
+----
+sonatype:
+  polling_interval: 15s # Time between requests made to determine if the closing of a staging repository has completed.
+  upload_threads: 8 # Number of threads used to upload artifacts to the staging repository.
+  exclude: # Regular expression patterns of artifacts to exclude
+    - 'build-info\.json' # required to avoid publishing Artifactory build info
+    - 'org/springframework/boot/spring-boot-docs/.*'
+----
+
+
 === Promote command
 
 Command used to move the build artifacts to a target repository in Artifactory.
@@ -93,41 +113,6 @@ This steps usually happens after the staging of artifacts on Artifactory. This s
 
 This command sends a request to the Artifactory REST API to promote artifacts from a staging repository to a target repository.
 
-=== Distribute command
-
-Command used to deploy builds from Artifactory to Bintray.
-This step usually happens after a version promotion.
-
-This command sends a request to the Artifactory REST API in order to request the distribution of artifacts from the source repository to the `"spring-distributions"` Bintray repository.
-Once the request initiated, the command polls regularly the Bintray API to check whether the distribution is complete.
-The command fails is the distribution is not completed within 40 minutes.
-
-You can also mark artifacts as optional deployments (they won't be deployed to Bintray) with the `distribute.optional-deployments` configuration key:
-
-[source,yml,subs="verbatim,attributes"]
-.Distribute Optional Deployments
-----
-distribute:
-  optional-deployments:
-    - '.*\\.zip'
-    - 'spring-boot-project-\\d+\\.\\d+\\.\\d+(?:\\.RELEASE)?\\.pom'
-----
-
-=== Publish Gradle Plugin Command
-
-Command used to add attributes to the Spring Boot Gradle plugin.
-This step usually happens after a version distribution.
-
-This command sends a request to the Bintray REST API in order to add the following property to the release:
-
-[source,json,subs="verbatim,attributes"]
-.Sonatype Configuration Properties
-----
-{
-  "name": "gradle-plugin",
-  "values": ["org.springframework.boot:org.springframework.boot:spring-boot-gradle-plugin"]
-}
-----
 
 === Publish the Spring Boot CLI to SDKMAN!
 
@@ -144,9 +129,3 @@ Where:
 * `$BRANCH` the git branch the artifact is being tagged and released from
 
 
-=== Sync To Maven Central Command
-
-Command used to sync artifacts to Maven Central.
-This step usually happens after a version distribution.
-
-This command sends a request to the Bintray REST API to request the synchronization for this release from Bintray to Maven Central.
