@@ -75,8 +75,8 @@ public class SonatypeService {
 	private final int threads;
 
 	public SonatypeService(RestTemplateBuilder builder, SonatypeProperties sonatypeProperties) {
-		String username = sonatypeProperties.getUserToken();
-		String password = sonatypeProperties.getPasswordToken();
+		String username = sonatypeProperties.getUsername();
+		String password = sonatypeProperties.getPassword();
 		if (StringUtils.hasLength(username)) {
 			builder = builder.basicAuthentication(username, password);
 		}
@@ -167,7 +167,7 @@ public class SonatypeService {
 			this.restTemplate.put(
 					NEXUS_STAGING_PATH + "deployByRepositoryId/" + repositoryId + "/" + deployableArtifact.getPath(),
 					deployableArtifact.getResource());
-			logger.info("Deloyed {}", deployableArtifact.getPath());
+			logger.info("Deployed {}", deployableArtifact.getPath());
 		}
 		catch (HttpClientErrorException ex) {
 			logger.error("Failed to deploy {}. Error response: {}", deployableArtifact.getPath(),

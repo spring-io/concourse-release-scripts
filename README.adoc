@@ -37,8 +37,8 @@ artifactory:
 .Sonatype Configuration Properties
 ----
 sonatype:
-  user_token: # Sonatype usern token.
-  password_token: # Sonatype password token.
+  username: # Sonatype user name.
+  password: # Sonatype password.
   url: # URL of the Nexus instance used to publish releases.
   staging_profile_id: # ID of the staging profile used to publish releases.
 ----

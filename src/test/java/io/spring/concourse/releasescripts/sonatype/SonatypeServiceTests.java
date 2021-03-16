@@ -57,8 +57,11 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * Tests for {@link SonatypeService}.
  *
  * @author Madhura Bhave
+ * @author Brian Clozel
  */
-@RestClientTest(components = SonatypeService.class, properties = "sonatype.url=https://nexus.example.org")
+@RestClientTest(components = SonatypeService.class,
+		properties = { "sonatype.url=https://nexus.example.org", "sonatype.username=spring",
+				"sonatype.password=secret" })
 @EnableConfigurationProperties(SonatypeProperties.class)
 class SonatypeServiceTests {
 
@@ -78,6 +81,7 @@ class SonatypeServiceTests {
 		this.server.expect(requestTo(String.format(
 				"/service/local/repositories/releases/content/org/springframework/boot/spring-boot/%s/spring-boot-%s.jar.sha1",
 				"1.1.0.RELEASE", "1.1.0.RELEASE"))).andExpect(method(HttpMethod.GET))
+				.andExpect(header("Authorization", "Basic c3ByaW5nOnNlY3JldA=="))
 				.andRespond(withSuccess().body("ce8d8b6838ecceb68962b9150b18682f4237ccf71".getBytes()));
 		boolean published = this.service.artifactsPublished(getReleaseInfo());
 		assertThat(published).isTrue();

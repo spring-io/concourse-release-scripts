@@ -20,8 +20,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -32,11 +30,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "sonatype")
 public class SonatypeProperties {
 
-	@JsonProperty("username")
-	private String userToken;
+	private String username;
 
-	@JsonProperty("password")
-	private String passwordToken;
+	private String password;
 
 	/**
 	 * URL of the Nexus instance used to publish releases.
@@ -64,20 +60,20 @@ public class SonatypeProperties {
 	 */
 	private List<String> exclude = new ArrayList<>();
 
-	public String getUserToken() {
-		return this.userToken;
+	public String getUsername() {
+		return this.username;
 	}
 
-	public void setUserToken(String userToken) {
-		this.userToken = userToken;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
-	public String getPasswordToken() {
-		return this.passwordToken;
+	public String getPassword() {
+		return this.password;
 	}
 
-	public void setPasswordToken(String passwordToken) {
-		this.passwordToken = passwordToken;
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public String getUrl() {
