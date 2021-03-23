@@ -87,11 +87,22 @@ class ArtifactoryServiceTests {
 	}
 
 	@Test
-	void promoteWhenCheckForArtifactsAlreadyPromotedFails() {
+	void promoteWhenCheckForArtifactsAlreadyPromotedForbidden() {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
 				.andRespond(withStatus(HttpStatus.CONFLICT));
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
 				.andRespond(withStatus(HttpStatus.FORBIDDEN));
+		assertThatExceptionOfType(HttpClientErrorException.class)
+				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
+		this.server.verify();
+	}
+
+	@Test
+	void promoteWhenCheckForArtifactsAlreadyPromotedMissingStatuses() {
+		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
+				.andRespond(withStatus(HttpStatus.CONFLICT));
+		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
+				.andRespond(withJsonFrom("not-staged-build-info-response.json"));
 		assertThatExceptionOfType(HttpClientErrorException.class)
 				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
 		this.server.verify();

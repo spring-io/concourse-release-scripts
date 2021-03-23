@@ -93,12 +93,16 @@ public class ArtifactoryService {
 
 	private boolean isAlreadyPromoted(String buildName, String buildNumber, String targetRepo) {
 		try {
-			logger.debug("Checking if alreay promoted");
+			logger.debug("Checking if already promoted");
 			ResponseEntity<BuildInfoResponse> entity = this.restTemplate
 					.getForEntity(BUILD_INFO_URL + buildName + "/" + buildNumber, BuildInfoResponse.class);
-			BuildInfoResponse.Status status = entity.getBody().getBuildInfo().getStatuses()[0];
-			logger.debug("Returned repository " + status.getRepository() + " expecting " + targetRepo);
-			return status.getRepository().equals(targetRepo);
+			if (entity.getBody().getBuildInfo().getStatuses() != null) {
+				BuildInfoResponse.Status status = entity.getBody().getBuildInfo().getStatuses()[0];
+				logger.debug("Returned repository " + status.getRepository() + " expecting " + targetRepo);
+				return status.getRepository().equals(targetRepo);
+			}
+			logger.debug("Missing build statuses information, not promoted");
+			return false;
 		}
 		catch (HttpClientErrorException ex) {
 			logger.debug("Client error, assuming not promoted");
