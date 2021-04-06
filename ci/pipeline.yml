@@ -114,9 +114,9 @@ jobs:
       BINTRAY_USERNAME: ((bintray-username))
       BINTRAY_API_KEY: ((bintray-api-key))
 groups:
-- name: "Build"
+- name: "build"
   jobs: ["build"]
-- name: "Release"
+- name: "release"
   jobs: ["stage-release", "promote-release"]
-- name: "CI Images"
+- name: "ci-images"
   jobs: ["build-ci-image"]
