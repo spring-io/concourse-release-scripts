@@ -1,6 +1,6 @@
 resource_types:
 - name: artifactory-resource
-  type: docker-image
+  type: registry-image
   source:
     repository: springio/artifactory-resource
     tag: 0.0.12
@@ -13,7 +13,6 @@ resources:
     username: ((github-username))
     password: ((github-password))
     branch: ((branch))
-    ignore_paths: ["ci/*"]
 - name: ci-images-git-repo
   type: git
   icon: github-circle
@@ -21,8 +20,8 @@ resources:
     uri: ((github-repo))
     branch: ((branch))
     paths: ["ci/images/*"]
-- name: concourse-release-scripts-ci-image
-  type: docker-image
+- name: ci-image
+  type: registry-image
   icon: docker
   source:
     repository: ((docker-hub-organization))/concourse-release-scripts-ci-image
@@ -40,24 +39,31 @@ resources:
 jobs:
 - name: build-ci-image
   plan:
+  - get: git-repo
   - get: ci-images-git-repo
     trigger: true
-  - put: concourse-release-scripts-ci-image
+  - task: build-ci-image
+    privileged: true
+    file: git-repo/ci/tasks/build-ci-image.yml
+    output_mapping:
+      image: ci-image
+    vars:
+      ci-image-name: ci-image
+  - put: ci-image
     params:
-      build: ci-images-git-repo/ci/images
-      dockerfile: ci-images-git-repo/ci/images/concourse-release-scripts-ci-image/Dockerfile
+      image: ci-image/image.tar
 - name: build
   serial: true
   public: true
   plan:
-  - get: concourse-release-scripts-ci-image
+  - get: ci-image
   - get: git-repo
     trigger: true
   - do:
     - task: build-project
       privileged: true
       timeout: ((task-timeout))
-      image: concourse-release-scripts-ci-image
+      image: ci-image
       file: git-repo/ci/tasks/build-project.yml
       params:
         BRANCH: ((branch))
@@ -74,11 +80,11 @@ jobs:
 - name: stage-release
   serial: true
   plan:
-  - get: concourse-release-scripts-ci-image
+  - get: ci-image
   - get: git-repo
     trigger: false
   - task: stage
-    image: concourse-release-scripts-ci-image
+    image: ci-image
     file: git-repo/ci/tasks/stage.yml
     params:
       RELEASE_TYPE: RELEASE
@@ -92,7 +98,7 @@ jobs:
 - name: promote-release
   serial: true
   plan:
-  - get: concourse-release-scripts-ci-image
+  - get: ci-image
   - get: git-repo
     trigger: false
   - get: artifactory-repo
@@ -102,7 +108,7 @@ jobs:
       download_artifacts: true
       save_build_info: true
   - task: promote
-    image: concourse-release-scripts-ci-image
+    image: ci-image
     file: git-repo/ci/tasks/promote.yml
     params:
       RELEASE_TYPE: RELEASE
