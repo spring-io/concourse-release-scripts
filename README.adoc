@@ -2,14 +2,14 @@
 
 A Spring Boot application for distributing build artifacts to public repositories.
 
+
 == Overview
 
 The Concourse Release Scripts application can be included in Concourse container build images to distribute build artifacts to public repositories.
 
 This is a command line application and it should be used as such in build scripts.
-To configure the app, you can add an `application.yml` file in the same folder or in `./config`; for more on that, see the
-https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-application-property-files[Spring Boot reference documentation].
-The available configuration options are described in te <<Configuration Properties>> section.
+To configure the app, add an `application.yml` file in the same folder or in `./config`.
+For more on that, see the https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-application-property-files[Spring Boot reference documentation]. The available configuration options are described in the <<Configuration Properties>> section.
 
 [source,sh,subs="verbatim,attributes"]
 .Launching the application on the CLI
@@ -17,9 +17,9 @@ The available configuration options are described in te <<Configuration Properti
 java -jar ./concourse-release-scripts.jar $COMMAND [$ARG...]
 ----
 
-To interact with Artifactory repositories in Concourse, usage of the https://github.com/spring-io/artifactory-resource[Concourse Artifactoy Resource] is recommended.
+To interact with Artifactory repositories in Concourse, usage of the https://github.com/spring-io/artifactory-resource[Concourse Artifactory Resource] is recommended.
 
-== Authentication
+== Configuration Properties
 
 This application interacts with Artifactory and Maven Central.
 The corresponding credentials must be provided using configuration properties:
@@ -78,7 +78,7 @@ Where:
 
 Command used to publish artifacts to Maven Central using the OSS Sonatype instance.
 The release is published by creating a staging repository and deploying to it the artifacts at the given `$ARTIFACTS_LOCATION`.
-The repository is then closed and, upon successfully closure, it is released.
+The repository is then closed and, upon successful closure, it is released.
 
 [source,sh,subs="verbatim,attributes"]
 .Command example
@@ -109,7 +109,8 @@ sonatype:
 === Promote command
 
 Command used to move the build artifacts to a target repository in Artifactory.
-This steps usually happens after the staging of artifacts on Artifactory. This step can be done with the https://github.com/spring-io/artifactory-resource[Concourse Artifactoy Resource].
+This steps usually happens after the staging of artifacts on Artifactory.
+This step can be done with the https://github.com/spring-io/artifactory-resource[Concourse Artifactory Resource].
 
 This command sends a request to the Artifactory REST API to promote artifacts from a staging repository to a target repository.
 
@@ -127,5 +128,3 @@ Where:
 * `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
 * `$VERSION` the actual artifact version
 * `$BRANCH` the git branch the artifact is being tagged and released from
-
-
