@@ -79,7 +79,7 @@ class SonatypeServiceTests {
 	@Test
 	void artifactsPublishedWhenPublishedShouldReturnTrue() {
 		this.server.expect(requestTo(String.format(
-				"/service/local/repositories/releases/content/org/springframework/boot/spring-boot/%s/spring-boot-%s.jar.sha1",
+				"/service/local/repositories/releases/content/org/example/test/test-artifact/%s/test-artifact-%s.jar.sha1",
 				"1.1.0.RELEASE", "1.1.0.RELEASE"))).andExpect(method(HttpMethod.GET))
 				.andExpect(header("Authorization", "Basic c3ByaW5nOnNlY3JldA=="))
 				.andRespond(withSuccess().body("ce8d8b6838ecceb68962b9150b18682f4237ccf71".getBytes()));
@@ -91,7 +91,7 @@ class SonatypeServiceTests {
 	@Test
 	void artifactsPublishedWhenNotPublishedShouldReturnFalse() {
 		this.server.expect(requestTo(String.format(
-				"/service/local/repositories/releases/content/org/springframework/boot/spring-boot/%s/spring-boot-%s.jar.sha1",
+				"/service/local/repositories/releases/content/org/example/test/test-artifact/%s/test-artifact-%s.jar.sha1",
 				"1.1.0.RELEASE", "1.1.0.RELEASE"))).andExpect(method(HttpMethod.GET))
 				.andRespond(withStatus(HttpStatus.NOT_FOUND));
 		boolean published = this.service.artifactsPublished(getReleaseInfo());
@@ -201,6 +201,8 @@ class SonatypeServiceTests {
 		releaseInfo.setBuildNumber("example-build-1");
 		releaseInfo.setVersion("1.1.0.RELEASE");
 		releaseInfo.setGroupId("example");
+		releaseInfo.setMarkerArtifact(
+				ReleaseInfo.MarkerArtifact.fromCoordinates("org.example.test:test-artifact:1.1.0.RELEASE"));
 		return releaseInfo;
 	}
 

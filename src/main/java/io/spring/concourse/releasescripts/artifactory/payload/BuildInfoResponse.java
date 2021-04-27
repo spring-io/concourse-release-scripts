@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2012-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,9 +141,19 @@ public class BuildInfoResponse {
 
 	public static class Artifact {
 
+		private String type;
+
 		private String name;
 
 		private String sha256;
+
+		public String getType() {
+			return this.type;
+		}
+
+		public void setType(String type) {
+			this.type = type;
+		}
 
 		public String getName() {
 			return this.name;

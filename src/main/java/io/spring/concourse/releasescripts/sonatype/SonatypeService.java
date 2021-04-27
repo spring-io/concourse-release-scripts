@@ -16,6 +16,7 @@
 
 package io.spring.concourse.releasescripts.sonatype;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Central class for interacting with Sonatype.
@@ -60,7 +62,7 @@ public class SonatypeService {
 
 	private static final Logger logger = LoggerFactory.getLogger(SonatypeService.class);
 
-	private static final String NEXUS_REPOSITORY_PATH = "/service/local/repositories/releases/content/org/springframework/boot/spring-boot/";
+	private static final String NEXUS_REPOSITORY_PATH = "/service/local/repositories/releases/content/";
 
 	private static final String NEXUS_STAGING_PATH = "/service/local/staging/";
 
@@ -95,18 +97,24 @@ public class SonatypeService {
 	 */
 	public boolean artifactsPublished(ReleaseInfo releaseInfo) {
 		try {
-			ResponseEntity<?> entity = this.restTemplate
-					.getForEntity(String.format(NEXUS_REPOSITORY_PATH + "%s/spring-boot-%s.jar.sha1",
-							releaseInfo.getVersion(), releaseInfo.getVersion()), byte[].class);
+			ResponseEntity<?> entity = this.restTemplate.getForEntity(buildMarkerArtifactSha1URI(releaseInfo),
+					byte[].class);
 			if (HttpStatus.OK.equals(entity.getStatusCode())) {
 				logger.info("Already published to Sonatype.");
 				return true;
 			}
 		}
 		catch (HttpClientErrorException ex) {
-
+			logger.debug("Artifact not yet published: " + releaseInfo.getMarkerArtifact());
 		}
 		return false;
+	}
+
+	private URI buildMarkerArtifactSha1URI(ReleaseInfo releaseInfo) {
+		ReleaseInfo.MarkerArtifact markerArtifact = releaseInfo.getMarkerArtifact();
+		return UriComponentsBuilder.fromPath(NEXUS_REPOSITORY_PATH).path(markerArtifact.getGroupId().replace('.', '/'))
+				.path("/{artifactId}/{version}/{artifactId}-{version}.jar.sha1").build(markerArtifact.getArtifactId(),
+						markerArtifact.getVersion(), markerArtifact.getArtifactId(), markerArtifact.getVersion());
 	}
 
 	/**
