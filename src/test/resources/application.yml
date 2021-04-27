@@ -11,3 +11,5 @@ sonatype:
 sdkman:
   consumer-key: sdkman-consumer-key
   consumer-token: sdkman-consumer-token
+  candidate: springboot
+  artifact: "org.springframework.boot:spring-boot-cli:*:zip:bin"

@@ -49,6 +49,8 @@ sonatype:
 sdkman:
   consumer-key: # SDKMAN! Consumer Key
   consumer-token: # SDKMAN! Consumer Token
+  candidate: # SDKMAN! candidate name
+  artifact: # group:artifact:version[:packaging[:classifier]] coordinates with version ignored, e.g. "org.springframework.boot:spring-boot-cli:*:zip:bin"
 ----
 
 
@@ -115,7 +117,7 @@ This step can be done with the https://github.com/spring-io/artifactory-resource
 This command sends a request to the Artifactory REST API to promote artifacts from a staging repository to a target repository.
 
 
-=== Publish the Spring Boot CLI to SDKMAN!
+=== Publish an artifact to SDKMAN!
 
 [source,sh,subs="verbatim,attributes"]
 .Command example

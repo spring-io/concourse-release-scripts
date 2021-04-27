@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2012-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 /**
  * Central class for interacting with SDKMAN's API.
  *
  * @author Madhura Bhave
+ * @author Brian Clozel
  */
 @Component
 public class SdkmanService {
@@ -39,10 +41,7 @@ public class SdkmanService {
 
 	private static final String SDKMAN_URL = "https://vendors.sdkman.io/";
 
-	private static final String DOWNLOAD_URL = "https://repo.spring.io/simple/libs-release-local/org/springframework/boot/spring-boot-cli/"
-			+ "%s/spring-boot-cli-%s-bin.zip";
-
-	private static final String SPRING_BOOT = "springboot";
+	private static final String DOWNLOAD_BASE_URL = "https://repo.spring.io/simple/libs-release-local/";
 
 	private final RestTemplate restTemplate;
 
@@ -66,7 +65,7 @@ public class SdkmanService {
 	}
 
 	private void broadcast(String version) {
-		BroadcastRequest broadcastRequest = new BroadcastRequest(version);
+		BroadcastRequest broadcastRequest = new BroadcastRequest(this.properties.getCandidate(), version);
 		RequestEntity<BroadcastRequest> broadcastEntity = RequestEntity.post(URI.create(SDKMAN_URL + "announce/struct"))
 				.header(CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
 				.header(CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
@@ -77,7 +76,7 @@ public class SdkmanService {
 
 	private void makeDefault(String version) {
 		logger.debug("Making this version the default");
-		Request request = new Request(version);
+		Request request = new Request(this.properties.getCandidate(), version);
 		RequestEntity<Request> requestEntity = RequestEntity.put(URI.create(SDKMAN_URL + "default"))
 				.header(CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
 				.header(CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
@@ -87,7 +86,9 @@ public class SdkmanService {
 	}
 
 	private void release(String version) {
-		ReleaseRequest releaseRequest = new ReleaseRequest(version, String.format(DOWNLOAD_URL, version, version));
+		Artifact artifact = Artifact.parseCoordinates(this.properties.getArtifact());
+		ReleaseRequest releaseRequest = new ReleaseRequest(this.properties.getCandidate(), version,
+				DOWNLOAD_BASE_URL + artifact.buildArtifactPath(version));
 		RequestEntity<ReleaseRequest> releaseEntity = RequestEntity.post(URI.create(SDKMAN_URL + "release"))
 				.header(CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
 				.header(CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
@@ -98,11 +99,12 @@ public class SdkmanService {
 
 	static class Request {
 
-		private final String candidate = SPRING_BOOT;
+		private final String candidate;
 
 		private final String version;
 
-		Request(String version) {
+		public Request(String candidate, String version) {
+			this.candidate = candidate;
 			this.version = version;
 		}
 
@@ -120,8 +122,8 @@ public class SdkmanService {
 
 		private final String url;
 
-		ReleaseRequest(String version, String url) {
-			super(version);
+		public ReleaseRequest(String candidate, String version, String url) {
+			super(candidate, version);
 			this.url = url;
 		}
 
@@ -133,14 +135,73 @@ public class SdkmanService {
 
 	static class BroadcastRequest extends Request {
 
-		private final String hashtag = SPRING_BOOT;
-
-		BroadcastRequest(String version) {
-			super(version);
+		public BroadcastRequest(String candidate, String version) {
+			super(candidate, version);
 		}
 
-		public String getHashtag() {
-			return this.hashtag;
+	}
+
+	static class Artifact {
+
+		private final String groupId;
+
+		private final String artifactId;
+
+		private String packaging = "jar";
+
+		private String classifier = "";
+
+		public Artifact(String groupId, String artifactId) {
+			this.groupId = groupId;
+			this.artifactId = artifactId;
+		}
+
+		static Artifact parseCoordinates(String coordinates) {
+			String[] split = coordinates.split(":");
+			Artifact artifact = new Artifact(split[0], split[1]);
+			if (split.length > 2) {
+				artifact.setPackaging(split[3]);
+			}
+			if (split.length > 3) {
+				artifact.setClassifier(split[4]);
+			}
+			return artifact;
+		}
+
+		public String getGroupId() {
+			return this.groupId;
+		}
+
+		public String getArtifactId() {
+			return this.artifactId;
+		}
+
+		public String getPackaging() {
+			return this.packaging;
+		}
+
+		public void setPackaging(String packaging) {
+			this.packaging = packaging;
+		}
+
+		public String getClassifier() {
+			return this.classifier;
+		}
+
+		public void setClassifier(String classifier) {
+			this.classifier = classifier;
+		}
+
+		public String buildArtifactPath(String version) {
+			StringBuilder builder = new StringBuilder();
+			builder.append(this.groupId.replace('.', '/')).append('/');
+			builder.append(this.artifactId).append('/').append(version).append('/');
+			builder.append(this.artifactId).append('-').append(version);
+			if (StringUtils.hasText(this.classifier)) {
+				builder.append('-').append(this.classifier);
+			}
+			builder.append('.').append(this.packaging);
+			return builder.toString();
 		}
 
 	}

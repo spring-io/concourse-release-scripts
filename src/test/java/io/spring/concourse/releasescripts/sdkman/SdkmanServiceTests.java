@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2012-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * Tests for {@link SdkmanService}.
  *
  * @author Madhura Bhave
+ * @author Brian Clozel
  */
 @EnableConfigurationProperties(SdkmanProperties.class)
 @RestClientTest(SdkmanService.class)
@@ -62,7 +63,7 @@ class SdkmanServiceTests {
 		setupExpectation("https://vendors.sdkman.io/default", "{\"candidate\": \"springboot\", \"version\": \"1.2.3\"}",
 				HttpMethod.PUT);
 		setupExpectation("https://vendors.sdkman.io/announce/struct",
-				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\", \"hashtag\": \"springboot\"}");
+				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\"}");
 		this.service.publish("1.2.3", true);
 		this.server.verify();
 	}
@@ -72,7 +73,7 @@ class SdkmanServiceTests {
 		setupExpectation("https://vendors.sdkman.io/release",
 				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\", \"url\": \"https://repo.spring.io/simple/libs-release-local/org/springframework/boot/spring-boot-cli/1.2.3/spring-boot-cli-1.2.3-bin.zip\"}");
 		setupExpectation("https://vendors.sdkman.io/announce/struct",
-				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\", \"hashtag\": \"springboot\"}");
+				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\"}");
 		this.service.publish("1.2.3", false);
 		this.server.verify();
 	}
