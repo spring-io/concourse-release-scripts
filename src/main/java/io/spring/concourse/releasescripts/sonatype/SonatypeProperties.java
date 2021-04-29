@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 
 /**
  * {@link ConfigurationProperties @ConfigurationProperties} for Sonatype.
@@ -43,6 +44,11 @@ public class SonatypeProperties {
 	 * ID of the staging profile used to publish releases.
 	 */
 	private String stagingProfileId;
+
+	/**
+	 * Name of the staging profile used to publish releases.
+	 */
+	private String stagingProfile;
 
 	/**
 	 * Time between requests made to determine if the closing of a staging repository has
@@ -84,12 +90,22 @@ public class SonatypeProperties {
 		this.url = url;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = "sonatype.stating-profile")
 	public String getStagingProfileId() {
 		return this.stagingProfileId;
 	}
 
 	public void setStagingProfileId(String stagingProfileId) {
 		this.stagingProfileId = stagingProfileId;
+	}
+
+	public String getStagingProfile() {
+		return this.stagingProfile;
+	}
+
+	public void setStagingProfile(String stagingProfile) {
+		this.stagingProfile = stagingProfile;
 	}
 
 	public Duration getPollingInterval() {

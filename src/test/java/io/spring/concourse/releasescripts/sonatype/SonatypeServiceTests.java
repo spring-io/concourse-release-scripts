@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,7 +61,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  */
 @RestClientTest(components = SonatypeService.class,
 		properties = { "sonatype.url=https://nexus.example.org", "sonatype.username=spring",
-				"sonatype.password=secret" })
+				"sonatype.stagingProfile=org.example", "sonatype.password=secret" })
 @EnableConfigurationProperties(SonatypeProperties.class)
 class SonatypeServiceTests {
 
@@ -101,7 +101,12 @@ class SonatypeServiceTests {
 
 	@Test
 	void publishWithSuccessfulClose() throws IOException {
-		this.server.expect(requestTo("/service/local/staging/profiles/1a2b3c4d/start"))
+		this.server.expect(requestTo("/service/local/staging/profiles"))
+				.andExpect(header("Accept", "application/json, application/*+json"))
+				.andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
+						.body(getResource("profiles.json")));
+
+		this.server.expect(requestTo("/service/local/staging/profiles/2e3ed47dc2510/start"))
 				.andExpect(method(HttpMethod.POST)).andExpect(header("Content-Type", "application/json"))
 				.andExpect(header("Accept", "application/json, application/*+json"))
 				.andExpect(jsonPath("$.data.description").value("example-build-1"))
@@ -120,7 +125,7 @@ class SonatypeServiceTests {
 			assertThat(uploadRequestsMatcher.candidates).hasSize(150);
 			this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher).andExpect(method(HttpMethod.PUT))
 					.andRespond(withSuccess());
-			this.server.expect(requestTo("/service/local/staging/profiles/1a2b3c4d/finish"))
+			this.server.expect(requestTo("/service/local/staging/profiles/2e3ed47dc2510/finish"))
 					.andExpect(method(HttpMethod.POST)).andExpect(header("Content-Type", "application/json"))
 					.andExpect(header("Accept", "application/json, application/*+json"))
 					.andRespond(withStatus(HttpStatus.CREATED));
@@ -149,7 +154,11 @@ class SonatypeServiceTests {
 
 	@Test
 	void publishWithCloseFailureDueToRuleViolations() throws IOException {
-		this.server.expect(requestTo("/service/local/staging/profiles/1a2b3c4d/start"))
+		this.server.expect(requestTo("/service/local/staging/profiles"))
+				.andExpect(header("Accept", "application/json, application/*+json"))
+				.andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
+						.body(getResource("profiles.json")));
+		this.server.expect(requestTo("/service/local/staging/profiles/2e3ed47dc2510/start"))
 				.andExpect(method(HttpMethod.POST)).andExpect(header("Content-Type", "application/json"))
 				.andExpect(header("Accept", "application/json, application/*+json"))
 				.andExpect(jsonPath("$.data.description").value("example-build-1"))
@@ -168,7 +177,7 @@ class SonatypeServiceTests {
 			assertThat(uploadRequestsMatcher.candidates).hasSize(150);
 			this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher).andExpect(method(HttpMethod.PUT))
 					.andRespond(withSuccess());
-			this.server.expect(requestTo("/service/local/staging/profiles/1a2b3c4d/finish"))
+			this.server.expect(requestTo("/service/local/staging/profiles/2e3ed47dc2510/finish"))
 					.andExpect(method(HttpMethod.POST)).andExpect(header("Content-Type", "application/json"))
 					.andExpect(header("Accept", "application/json, application/*+json"))
 					.andRespond(withStatus(HttpStatus.CREATED));
@@ -184,15 +193,18 @@ class SonatypeServiceTests {
 							.body("{\"type\":\"open\", \"transitioning\":false}"));
 			this.server.expect(requestTo("/service/local/staging/repository/example-6789/activity"))
 					.andExpect(method(HttpMethod.GET))
-					.andExpect(header("Accept", "application/json, application/*+json"))
-					.andRespond(withSuccess().contentType(MediaType.APPLICATION_JSON).body(new FileSystemResource(
-							new File("src/test/resources/io/spring/concourse/releasescripts/sonatype/activity.json"))));
+					.andExpect(header("Accept", "application/json, application/*+json")).andRespond(
+							withSuccess().contentType(MediaType.APPLICATION_JSON).body(getResource("activity.json")));
 			assertThatExceptionOfType(RuntimeException.class)
 					.isThrownBy(() -> this.service.publish(getReleaseInfo(), artifactsRoot))
 					.withMessage("Close failed");
 			this.server.verify();
 			assertThat(uploadRequestsMatcher.candidates).hasSize(0);
 		}
+	}
+
+	private ClassPathResource getResource(String path) {
+		return new ClassPathResource(path, getClass());
 	}
 
 	private ReleaseInfo getReleaseInfo() {

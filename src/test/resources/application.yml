@@ -5,7 +5,6 @@ sonatype:
   user-token: sonatype-user
   password-token: sonatype-password
   polling-interval: 1s
-  staging-profile-id: 1a2b3c4d
   exclude:
     - 'build-info\.json'
 sdkman:

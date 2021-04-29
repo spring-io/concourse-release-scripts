@@ -40,7 +40,8 @@ sonatype:
   username: # Sonatype user name.
   password: # Sonatype password.
   url: # URL of the Nexus instance used to publish releases.
-  staging_profile_id: # ID of the staging profile used to publish releases.
+  staging_profile: # Name of the staging profile used to publish releases. Usually the top-level group id, e.g. "org.springframework"
+  staging_profile_id: # ID of the staging profile used to publish releases. Deprecated, use staging_profile instead
 ----
 
 [source,yml,subs="verbatim,attributes"]

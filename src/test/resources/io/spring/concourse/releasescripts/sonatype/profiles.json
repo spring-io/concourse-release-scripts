@@ -1,0 +1,74 @@
+{
+  "data": [
+    {
+      "resourceURI": "https://example.org/service/local/staging/profiles/2e3ed47dc2510",
+      "id": "2e3ed47dc2510",
+      "name": "org.example",
+      "repositoryTemplateId": "default_hosted_release",
+      "repositoryType": "maven2",
+      "repositoryTargetId": "f778541873040",
+      "inProgress": false,
+      "order": 57,
+      "deployURI": "https://example.org/service/local/staging/deploy/maven2",
+      "targetGroups": [
+        "staging"
+      ],
+      "finishNotifyRoles": [
+        "org.example-deployer"
+      ],
+      "promotionNotifyRoles": [],
+      "dropNotifyRoles": [],
+      "closeRuleSets": [
+        "1b3bf8878311"
+      ],
+      "promoteRuleSets": [
+        "1b3bf8878311"
+      ],
+      "promotionTargetRepository": "releases",
+      "mode": "BOTH",
+      "finishNotifyCreator": true,
+      "promotionNotifyCreator": true,
+      "dropNotifyCreator": true,
+      "autoStagingDisabled": false,
+      "repositoriesSearchable": true,
+      "properties": {
+        "@class": "linked-hash-map"
+      }
+    },
+    {
+      "resourceURI": "https://example.org/service/local/staging/profiles/61d07ffeecc22",
+      "id": "61d07ffeecc22",
+      "name": "org.sample",
+      "repositoryTemplateId": "default_hosted_release",
+      "repositoryType": "maven2",
+      "repositoryTargetId": "270bcd6a9b75a",
+      "inProgress": false,
+      "order": 57,
+      "deployURI": "https://example.org/service/local/staging/deploy/maven2",
+      "targetGroups": [
+        "staging"
+      ],
+      "finishNotifyRoles": [
+        "org.sample-deployer"
+      ],
+      "promotionNotifyRoles": [],
+      "dropNotifyRoles": [],
+      "closeRuleSets": [
+        "1b3bf8878311"
+      ],
+      "promoteRuleSets": [
+        "1b3bf8878311"
+      ],
+      "promotionTargetRepository": "releases",
+      "mode": "BOTH",
+      "finishNotifyCreator": true,
+      "promotionNotifyCreator": true,
+      "dropNotifyCreator": true,
+      "autoStagingDisabled": false,
+      "repositoriesSearchable": true,
+      "properties": {
+        "@class": "linked-hash-map"
+      }
+    }
+  ]
+}

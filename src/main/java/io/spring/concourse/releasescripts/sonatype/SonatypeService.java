@@ -70,6 +70,8 @@ public class SonatypeService {
 
 	private final RestTemplate restTemplate;
 
+	private final String stagingProfile;
+
 	private final String stagingProfileId;
 
 	private final Duration pollingInterval;
@@ -83,6 +85,7 @@ public class SonatypeService {
 			builder = builder.basicAuthentication(username, password);
 		}
 		this.restTemplate = builder.rootUri(sonatypeProperties.getUrl()).build();
+		this.stagingProfile = sonatypeProperties.getStagingProfile();
 		this.stagingProfileId = sonatypeProperties.getStagingProfileId();
 		this.pollingInterval = sonatypeProperties.getPollingInterval();
 		this.threads = sonatypeProperties.getUploadThreads();
@@ -125,25 +128,33 @@ public class SonatypeService {
 	 * @param artifactsRoot the root directory of the artifacts to stage
 	 */
 	public void publish(ReleaseInfo releaseInfo, Path artifactsRoot) {
+		String stagingProfileId = this.stagingProfileId;
+		if (!StringUtils.hasText(stagingProfileId)) {
+			logger.info("Fetching stagingProfileId for:" + this.stagingProfile);
+			ProfilesResponse profiles = this.restTemplate.getForObject(NEXUS_STAGING_PATH + "/profiles",
+					ProfilesResponse.class);
+			stagingProfileId = profiles.data.stream().filter(profile -> profile.name.equals(this.stagingProfile))
+					.map(profile -> profile.id).findFirst().orElseThrow(() -> new IllegalStateException(
+							"Could not find stagingProfile named " + this.stagingProfile));
+		}
 		logger.info("Creating staging repository");
 		String buildId = releaseInfo.getBuildNumber();
-		String repositoryId = createStagingRepository(buildId);
+		String repositoryId = createStagingRepository(stagingProfileId, buildId);
 		Collection<DeployableArtifact> artifacts = this.artifactCollector.collectArtifacts(artifactsRoot);
 		logger.info("Staging repository {} created. Deploying {} artifacts", repositoryId, artifacts.size());
 		deploy(artifacts, repositoryId);
 		logger.info("Deploy complete. Closing staging repository");
-		close(repositoryId);
+		close(stagingProfileId, repositoryId);
 		logger.info("Staging repository closed");
 		release(repositoryId, buildId);
 		logger.info("Staging repository released");
 	}
 
-	private String createStagingRepository(String buildId) {
+	private String createStagingRepository(String stagingProfileId, String buildId) {
 		Map<String, Object> body = new HashMap<>();
 		body.put("data", Collections.singletonMap("description", buildId));
 		PromoteResponse response = this.restTemplate.postForObject(
-				String.format(NEXUS_STAGING_PATH + "profiles/%s/start", this.stagingProfileId), body,
-				PromoteResponse.class);
+				String.format(NEXUS_STAGING_PATH + "profiles/%s/start", stagingProfileId), body, PromoteResponse.class);
 		String repositoryId = response.data.stagedRepositoryId;
 		return repositoryId;
 	}
@@ -184,10 +195,10 @@ public class SonatypeService {
 		}
 	}
 
-	private void close(String stagedRepositoryId) {
+	private void close(String stagingProfileId, String stagedRepositoryId) {
 		Map<String, Object> body = new HashMap<>();
 		body.put("data", Collections.singletonMap("stagedRepositoryId", stagedRepositoryId));
-		this.restTemplate.postForEntity(String.format(NEXUS_STAGING_PATH + "profiles/%s/finish", this.stagingProfileId),
+		this.restTemplate.postForEntity(String.format(NEXUS_STAGING_PATH + "profiles/%s/finish", stagingProfileId),
 				body, Void.class);
 		logger.info("Close requested. Awaiting result");
 		while (true) {
@@ -236,6 +247,31 @@ public class SonatypeService {
 		data.put("autoDropAfterRelease", true);
 		Map<String, Object> body = Collections.singletonMap("data", data);
 		this.restTemplate.postForEntity(NEXUS_STAGING_PATH + "bulk/promote", body, Void.class);
+	}
+
+	private static final class ProfilesResponse {
+
+		private final List<Data> data;
+
+		@JsonCreator(mode = Mode.PROPERTIES)
+		private ProfilesResponse(@JsonProperty("data") List<Data> data) {
+			this.data = data;
+		}
+
+		private static final class Data {
+
+			private final String id;
+
+			private final String name;
+
+			@JsonCreator(mode = Mode.PROPERTIES)
+			Data(@JsonProperty("id") String id, @JsonProperty("name") String name) {
+				this.id = id;
+				this.name = name;
+			}
+
+		}
+
 	}
 
 	private static final class PromoteResponse {
