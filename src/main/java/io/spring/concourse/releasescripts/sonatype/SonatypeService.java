@@ -93,26 +93,6 @@ public class SonatypeService {
 		this.artifactCollector = new ArtifactCollector(sonatypeProperties.getExclude());
 	}
 
-	/**
-	 * Checks if artifacts are already published to Maven Central.
-	 * @return true if artifacts are published
-	 * @param releaseInfo the release information
-	 */
-	public boolean artifactsPublished(ReleaseInfo releaseInfo) {
-		try {
-			ResponseEntity<?> entity = this.restTemplate.getForEntity(buildMarkerArtifactSha1URI(releaseInfo),
-					byte[].class);
-			if (HttpStatus.OK.equals(entity.getStatusCode())) {
-				logger.info("Already published to Sonatype.");
-				return true;
-			}
-		}
-		catch (HttpClientErrorException ex) {
-			logger.debug("Artifact not yet published: " + releaseInfo.getMarkerArtifact());
-		}
-		return false;
-	}
-
 	private URI buildMarkerArtifactSha1URI(ReleaseInfo releaseInfo) {
 		ReleaseInfo.MarkerArtifact markerArtifact = releaseInfo.getMarkerArtifact();
 		return UriComponentsBuilder.fromPath(NEXUS_REPOSITORY_PATH).path(markerArtifact.getGroupId().replace('.', '/'))
@@ -128,6 +108,9 @@ public class SonatypeService {
 	 * @param artifactsRoot the root directory of the artifacts to stage
 	 */
 	public void publish(ReleaseInfo releaseInfo, Path artifactsRoot) {
+		if (artifactsPublished(releaseInfo)) {
+			return;
+		}
 		String stagingProfileId = this.stagingProfileId;
 		if (!StringUtils.hasText(stagingProfileId)) {
 			logger.info("Fetching stagingProfileId for:" + this.stagingProfile);
@@ -148,6 +131,26 @@ public class SonatypeService {
 		logger.info("Staging repository closed");
 		release(repositoryId, buildId);
 		logger.info("Staging repository released");
+	}
+
+	/**
+	 * Checks if artifacts are already published to Maven Central.
+	 * @return true if artifacts are published
+	 * @param releaseInfo the release information
+	 */
+	private boolean artifactsPublished(ReleaseInfo releaseInfo) {
+		try {
+			ResponseEntity<?> entity = this.restTemplate.getForEntity(buildMarkerArtifactSha1URI(releaseInfo),
+					byte[].class);
+			if (HttpStatus.OK.equals(entity.getStatusCode())) {
+				logger.info("Already published to Sonatype.");
+				return true;
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			logger.debug("Artifact not yet published: " + releaseInfo.getMarkerArtifact());
+		}
+		return false;
 	}
 
 	private String createStagingRepository(String stagingProfileId, String buildId) {

@@ -77,30 +77,23 @@ class SonatypeServiceTests {
 	}
 
 	@Test
-	void artifactsPublishedWhenPublishedShouldReturnTrue() {
+	void publishWhenAlreadyPublishedShouldNotPublish() {
 		this.server.expect(requestTo(String.format(
 				"/service/local/repositories/releases/content/org/example/test/test-artifact/%s/test-artifact-%s.jar.sha1",
 				"1.1.0.RELEASE", "1.1.0.RELEASE"))).andExpect(method(HttpMethod.GET))
-				.andExpect(header("Authorization", "Basic c3ByaW5nOnNlY3JldA=="))
 				.andRespond(withSuccess().body("ce8d8b6838ecceb68962b9150b18682f4237ccf71".getBytes()));
-		boolean published = this.service.artifactsPublished(getReleaseInfo());
-		assertThat(published).isTrue();
-		this.server.verify();
-	}
-
-	@Test
-	void artifactsPublishedWhenNotPublishedShouldReturnFalse() {
-		this.server.expect(requestTo(String.format(
-				"/service/local/repositories/releases/content/org/example/test/test-artifact/%s/test-artifact-%s.jar.sha1",
-				"1.1.0.RELEASE", "1.1.0.RELEASE"))).andExpect(method(HttpMethod.GET))
-				.andRespond(withStatus(HttpStatus.NOT_FOUND));
-		boolean published = this.service.artifactsPublished(getReleaseInfo());
-		assertThat(published).isFalse();
+		Path artifactsRoot = new File("src/test/resources/io/spring/concourse/releasescripts/sonatype/artifactory-repo")
+				.toPath();
+		this.service.publish(getReleaseInfo(), artifactsRoot);
 		this.server.verify();
 	}
 
 	@Test
 	void publishWithSuccessfulClose() throws IOException {
+		this.server.expect(requestTo(String.format(
+				"/service/local/repositories/releases/content/org/example/test/test-artifact/%s/test-artifact-%s.jar.sha1",
+				"1.1.0.RELEASE", "1.1.0.RELEASE"))).andExpect(method(HttpMethod.GET))
+				.andRespond(withStatus(HttpStatus.NOT_FOUND));
 		this.server.expect(requestTo("/service/local/staging/profiles"))
 				.andExpect(header("Accept", "application/json, application/*+json"))
 				.andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
@@ -154,6 +147,10 @@ class SonatypeServiceTests {
 
 	@Test
 	void publishWithCloseFailureDueToRuleViolations() throws IOException {
+		this.server.expect(requestTo(String.format(
+				"/service/local/repositories/releases/content/org/example/test/test-artifact/%s/test-artifact-%s.jar.sha1",
+				"1.1.0.RELEASE", "1.1.0.RELEASE"))).andExpect(method(HttpMethod.GET))
+				.andRespond(withStatus(HttpStatus.NOT_FOUND));
 		this.server.expect(requestTo("/service/local/staging/profiles"))
 				.andExpect(header("Accept", "application/json, application/*+json"))
 				.andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
