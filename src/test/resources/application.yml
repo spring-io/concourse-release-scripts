@@ -5,8 +5,6 @@ sonatype:
   user-token: sonatype-user
   password-token: sonatype-password
   polling-interval: 1s
-  exclude:
-    - 'build-info\.json'
 sdkman:
   consumer-key: sdkman-consumer-key
   consumer-token: sdkman-consumer-token

@@ -18,6 +18,7 @@ package io.spring.concourse.releasescripts.sonatype;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -62,9 +63,9 @@ public class SonatypeProperties {
 	private int uploadThreads = 8;
 
 	/**
-	 * Regular expression patterns of artifacts to exclude
+	 * Regular expression patterns of artifacts to exclude.
 	 */
-	private List<String> exclude = new ArrayList<>();
+	private List<String> exclude = Arrays.asList("build-info\\.json");
 
 	public String getUsername() {
 		return this.username;
