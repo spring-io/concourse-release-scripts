@@ -20,6 +20,7 @@ import java.net.URI;
 
 import io.spring.concourse.releasescripts.ReleaseInfo;
 import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse;
+import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse.Status;
 import io.spring.concourse.releasescripts.artifactory.payload.PromotionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,13 +97,14 @@ public class ArtifactoryService {
 			logger.debug("Checking if already promoted");
 			ResponseEntity<BuildInfoResponse> entity = this.restTemplate
 					.getForEntity(BUILD_INFO_URL + buildName + "/" + buildNumber, BuildInfoResponse.class);
-			if (entity.getBody().getBuildInfo().getStatuses() != null) {
-				BuildInfoResponse.Status status = entity.getBody().getBuildInfo().getStatuses()[0];
-				logger.debug("Returned repository " + status.getRepository() + " expecting " + targetRepo);
-				return status.getRepository().equals(targetRepo);
+			Status[] statuses = entity.getBody().getBuildInfo().getStatuses();
+			Status status = (statuses != null) ? statuses[0] : null;
+			if (status == null) {
+				logger.debug("Returned no status object");
+				return false;
 			}
-			logger.debug("Missing build statuses information, not promoted");
-			return false;
+			logger.debug("Returned repository " + status.getRepository() + " expecting " + targetRepo);
+			return status.getRepository().equals(targetRepo);
 		}
 		catch (HttpClientErrorException ex) {
 			logger.debug("Client error, assuming not promoted");
