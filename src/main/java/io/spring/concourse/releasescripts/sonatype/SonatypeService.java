@@ -16,7 +16,6 @@
 
 package io.spring.concourse.releasescripts.sonatype;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
@@ -93,11 +92,12 @@ public class SonatypeService {
 		this.artifactCollector = new ArtifactCollector(sonatypeProperties.getExclude());
 	}
 
-	private URI buildMarkerArtifactSha1URI(ReleaseInfo releaseInfo) {
+	private String buildMarkerArtifactSha1URI(ReleaseInfo releaseInfo) {
 		ReleaseInfo.MarkerArtifact markerArtifact = releaseInfo.getMarkerArtifact();
 		return UriComponentsBuilder.fromPath(NEXUS_REPOSITORY_PATH).path(markerArtifact.getGroupId().replace('.', '/'))
 				.path("/{artifactId}/{version}/{artifactId}-{version}.jar.sha1").build(markerArtifact.getArtifactId(),
-						markerArtifact.getVersion(), markerArtifact.getArtifactId(), markerArtifact.getVersion());
+						markerArtifact.getVersion(), markerArtifact.getArtifactId(), markerArtifact.getVersion())
+				.toString();
 	}
 
 	/**
