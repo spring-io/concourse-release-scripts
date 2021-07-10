@@ -16,10 +16,6 @@
 
 package io.spring.concourse.releasescripts.command;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.spring.concourse.releasescripts.ReleaseInfo;
 import io.spring.concourse.releasescripts.ReleaseType;
@@ -28,10 +24,12 @@ import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse.
 import io.spring.concourse.releasescripts.sonatype.SonatypeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.util.List;
 
 /**
  * Command used to publish a release to Maven Central.
@@ -60,8 +58,8 @@ public class PublishToCentralCommand implements Command {
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		List<String> nonOptionArgs = args.getNonOptionArgs();
-		Assert.state(nonOptionArgs.size() == 4,
-				"Release type, build info location, or artifacts location not specified");
+		new ArgumentValidator(getName(), "RELEASE_TYPE", "BUILD_INFO_LOCATION", "ARTIFACTS_LOCATION")
+				.validate(nonOptionArgs);
 		String releaseType = nonOptionArgs.get(1);
 		ReleaseType type = ReleaseType.from(releaseType);
 		if (!ReleaseType.RELEASE.equals(type)) {
