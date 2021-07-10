@@ -67,7 +67,7 @@ The Concourse Release Scripts application supports several commands:
 [source,sh,subs="verbatim,attributes"]
 .Command example
 ----
-java -jar /spring-boot-release-scripts.jar $COMMAND $RELEASE_TYPE $BUILD_INFO_LOCATION
+java -jar /concourse-release-scripts.jar $COMMAND $RELEASE_TYPE $BUILD_INFO_LOCATION
 ----
 
 Where:
@@ -86,7 +86,7 @@ The repository is then closed and, upon successful closure, it is released.
 [source,sh,subs="verbatim,attributes"]
 .Command example
 ----
-java -jar /spring-boot-release-scripts.jar publishToMavenCentral $RELEASE_TYPE $BUILD_INFO_LOCATION $ARTIFACTS_LOCATION
+java -jar /concourse-release-scripts.jar publishToCentral $RELEASE_TYPE $BUILD_INFO_LOCATION $ARTIFACTS_LOCATION
 ----
 
 Where:
@@ -123,7 +123,7 @@ This command sends a request to the Artifactory REST API to promote artifacts fr
 [source,sh,subs="verbatim,attributes"]
 .Command example
 ----
-java -jar /spring-boot-release-scripts.jar publishToSdkman $RELEASE_TYPE $VERSION $BRANCH
+java -jar /concourse-release-scripts.jar publishToSdkman $RELEASE_TYPE $VERSION $BRANCH
 ----
 
 Where:
