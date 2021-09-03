@@ -103,6 +103,7 @@ There are additional configuration properties available for tuning the publishin
 sonatype:
   polling_interval: 15s # Time between requests made to determine if the closing of a staging repository has completed.
   upload_threads: 8 # Number of threads used to upload artifacts to the staging repository.
+  auto_release: true # Whether the repository should be promoted automatically after a successful close.
   exclude: # Regular expression patterns of artifacts to exclude
     - 'build-info\.json' # required to avoid publishing Artifactory build info
     - 'org/springframework/boot/spring-boot-docs/.*'

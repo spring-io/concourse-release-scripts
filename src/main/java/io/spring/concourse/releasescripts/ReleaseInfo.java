@@ -134,6 +134,11 @@ public class ReleaseInfo {
 			return this.version;
 		}
 
+		@Override
+		public String toString() {
+			return "MarkerArtifact{" + this.groupId + ':' + this.artifactId + ':' + this.version + "}";
+		}
+
 	}
 
 }

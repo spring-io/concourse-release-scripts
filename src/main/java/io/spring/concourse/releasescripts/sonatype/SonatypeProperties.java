@@ -17,7 +17,6 @@
 package io.spring.concourse.releasescripts.sonatype;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,6 +49,11 @@ public class SonatypeProperties {
 	 * Name of the staging profile used to publish releases.
 	 */
 	private String stagingProfile;
+
+	/**
+	 * Whether the repository should be released automatically after a successful close.
+	 */
+	private boolean autoRelease = true;
 
 	/**
 	 * Time between requests made to determine if the closing of a staging repository has
@@ -107,6 +111,14 @@ public class SonatypeProperties {
 
 	public void setStagingProfile(String stagingProfile) {
 		this.stagingProfile = stagingProfile;
+	}
+
+	public boolean isAutoRelease() {
+		return this.autoRelease;
+	}
+
+	public void setAutoRelease(boolean autoRelease) {
+		this.autoRelease = autoRelease;
 	}
 
 	public Duration getPollingInterval() {

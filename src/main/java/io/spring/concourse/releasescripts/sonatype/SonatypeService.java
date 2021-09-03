@@ -73,6 +73,8 @@ public class SonatypeService {
 
 	private final String stagingProfileId;
 
+	private final boolean autoRelease;
+
 	private final Duration pollingInterval;
 
 	private final int threads;
@@ -86,6 +88,7 @@ public class SonatypeService {
 		this.restTemplate = builder.rootUri(sonatypeProperties.getUrl()).build();
 		this.stagingProfile = sonatypeProperties.getStagingProfile();
 		this.stagingProfileId = sonatypeProperties.getStagingProfileId();
+		this.autoRelease = sonatypeProperties.isAutoRelease();
 		this.pollingInterval = sonatypeProperties.getPollingInterval();
 		this.threads = sonatypeProperties.getUploadThreads();
 
@@ -129,8 +132,10 @@ public class SonatypeService {
 		logger.info("Deploy complete. Closing staging repository");
 		close(stagingProfileId, repositoryId);
 		logger.info("Staging repository closed");
-		release(repositoryId, buildId);
-		logger.info("Staging repository released");
+		if (this.autoRelease) {
+			release(repositoryId, buildId);
+			logger.info("Staging repository released");
+		}
 	}
 
 	/**
