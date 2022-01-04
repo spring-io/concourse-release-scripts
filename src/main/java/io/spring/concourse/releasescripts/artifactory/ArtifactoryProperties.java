@@ -26,9 +26,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "artifactory")
 public class ArtifactoryProperties {
 
+	private String url;
+
 	private String username;
 
 	private String password;
+
+	public String getUrl() {
+		return this.url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
 	public String getUsername() {
 		return this.username;

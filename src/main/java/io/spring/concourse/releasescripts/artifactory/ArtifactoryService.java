@@ -44,11 +44,9 @@ public class ArtifactoryService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ArtifactoryService.class);
 
-	private static final String ARTIFACTORY_URL = "https://repo.spring.io";
+	private static final String PROMOTION_URL = "/api/build/promote/";
 
-	private static final String PROMOTION_URL = ARTIFACTORY_URL + "/api/build/promote/";
-
-	private static final String BUILD_INFO_URL = ARTIFACTORY_URL + "/api/build/";
+	private static final String BUILD_INFO_URL = "/api/build/";
 
 	private static final String STAGING_REPO = "libs-staging-local";
 
@@ -60,6 +58,7 @@ public class ArtifactoryService {
 		if (StringUtils.hasLength(username)) {
 			builder = builder.basicAuthentication(username, password);
 		}
+		builder.rootUri(artifactoryProperties.getUrl());
 		this.restTemplate = builder.build();
 	}
 
@@ -74,7 +73,7 @@ public class ArtifactoryService {
 		String buildNumber = releaseInfo.getBuildNumber();
 		logger.info("Promoting " + buildName + "/" + buildNumber + " to " + request.getTargetRepo());
 		RequestEntity<PromotionRequest> requestEntity = RequestEntity
-				.post(URI.create(PROMOTION_URL + buildName + "/" + buildNumber)).contentType(MediaType.APPLICATION_JSON)
+				.post(PROMOTION_URL + buildName + "/" + buildNumber).contentType(MediaType.APPLICATION_JSON)
 				.body(request);
 		try {
 			this.restTemplate.exchange(requestEntity, String.class);

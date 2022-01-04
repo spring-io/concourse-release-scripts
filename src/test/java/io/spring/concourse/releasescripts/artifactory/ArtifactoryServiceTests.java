@@ -45,7 +45,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  *
  * @author Madhura Bhave
  */
-@RestClientTest(ArtifactoryService.class)
+@RestClientTest(value = ArtifactoryService.class, properties = "artifactory.url=https://repo.spring.io")
 @EnableConfigurationProperties(ArtifactoryProperties.class)
 class ArtifactoryServiceTests {
 
@@ -65,7 +65,7 @@ class ArtifactoryServiceTests {
 
 	@Test
 	void promoteWhenSuccessful() {
-		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/promote/example-build/example-build-1"))
 				.andExpect(method(HttpMethod.POST))
 				.andExpect(content().json(
 						"{\"status\": \"staged\", \"sourceRepo\": \"libs-staging-local\", \"targetRepo\": \"libs-milestone-local\"}"))
@@ -78,9 +78,9 @@ class ArtifactoryServiceTests {
 
 	@Test
 	void promoteWhenArtifactsAlreadyPromoted() {
-		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/promote/example-build/example-build-1"))
 				.andRespond(withStatus(HttpStatus.CONFLICT));
-		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/example-build/example-build-1"))
 				.andRespond(withJsonFrom("build-info-response.json"));
 		this.service.promote("libs-release-local", getReleaseInfo());
 		this.server.verify();
@@ -88,9 +88,9 @@ class ArtifactoryServiceTests {
 
 	@Test
 	void promoteWhenCheckForArtifactsAlreadyPromotedForbidden() {
-		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/promote/example-build/example-build-1"))
 				.andRespond(withStatus(HttpStatus.CONFLICT));
-		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/example-build/example-build-1"))
 				.andRespond(withStatus(HttpStatus.FORBIDDEN));
 		assertThatExceptionOfType(HttpClientErrorException.class)
 				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
@@ -99,9 +99,9 @@ class ArtifactoryServiceTests {
 
 	@Test
 	void promoteWhenCheckForArtifactsAlreadyPromotedMissingStatuses() {
-		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/promote/example-build/example-build-1"))
 				.andRespond(withStatus(HttpStatus.CONFLICT));
-		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/example-build/example-build-1"))
 				.andRespond(withJsonFrom("not-staged-build-info-response.json"));
 		assertThatExceptionOfType(HttpClientErrorException.class)
 				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
@@ -110,9 +110,9 @@ class ArtifactoryServiceTests {
 
 	@Test
 	void promoteWhenPromotionFails() {
-		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/promote/example-build/example-build-1"))
 				.andRespond(withStatus(HttpStatus.CONFLICT));
-		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
+		this.server.expect(requestTo("/api/build/example-build/example-build-1"))
 				.andRespond(withJsonFrom("staged-build-info-response.json"));
 		assertThatExceptionOfType(HttpClientErrorException.class)
 				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));

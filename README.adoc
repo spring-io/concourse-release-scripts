@@ -28,9 +28,9 @@ The corresponding credentials must be provided using configuration properties:
 .Artifactory Configuration Properties
 ----
 artifactory:
+  url: # URL of the Artifactory instance
   username: # Artifactory credentials, username
   password: # Artifactory credentials, password
-  # server property is currently locked on https://repo.spring.io
 ----
 
 [source,yml,subs="verbatim,attributes"]
@@ -72,7 +72,7 @@ java -jar /concourse-release-scripts.jar $COMMAND $RELEASE_TYPE $BUILD_INFO_LOCA
 
 Where:
 
-* `$COMMAND` is the command name: `promote`, `distribute`, `publishGradlePlugin` or `syncToMavenCentral`
+* `$COMMAND` is the command name: `promote`, `distribute` or `syncToMavenCentral`
 * `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
 * `$BUILD_INFO_LOCATION` should point to the absolute location of the artifactory build file info (e.g. `/local-repository/build-info.json`)
 
