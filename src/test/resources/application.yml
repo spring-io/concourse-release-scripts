@@ -2,8 +2,6 @@ artifactory:
   username: user
   password: password
 sonatype:
-  user-token: sonatype-user
-  password-token: sonatype-password
   polling-interval: 1s
 sdkman:
   consumer-key: sdkman-consumer-key
