@@ -21,6 +21,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * @author Madhura Bhave
+ * @author Brian Clozel
  */
 public interface Command {
 
@@ -28,12 +29,12 @@ public interface Command {
 		String name = ClassUtils.getShortName(getClass());
 		int lastDot = name.lastIndexOf(".");
 		if (lastDot != -1) {
-			name = name.substring(lastDot + 1, name.length());
+			name = name.substring(lastDot + 1);
 		}
 		if (name.endsWith("Command")) {
 			name = name.substring(0, name.length() - "Command".length());
 		}
-		return name.toLowerCase();
+		return name.substring(0, 1).toLowerCase() + name.substring(1);
 	}
 
 	void run(ApplicationArguments args) throws Exception;

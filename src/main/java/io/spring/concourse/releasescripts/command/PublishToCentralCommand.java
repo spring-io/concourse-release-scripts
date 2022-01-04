@@ -16,6 +16,10 @@
 
 package io.spring.concourse.releasescripts.command;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.spring.concourse.releasescripts.ReleaseInfo;
 import io.spring.concourse.releasescripts.ReleaseType;
@@ -24,12 +28,9 @@ import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse.
 import io.spring.concourse.releasescripts.sonatype.SonatypeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.List;
 
 /**
  * Command used to publish a release to Maven Central.
@@ -48,11 +49,6 @@ public class PublishToCentralCommand implements Command {
 	public PublishToCentralCommand(SonatypeService sonatype, ObjectMapper objectMapper) {
 		this.sonatype = sonatype;
 		this.objectMapper = objectMapper;
-	}
-
-	@Override
-	public String getName() {
-		return "publishToCentral";
 	}
 
 	@Override
