@@ -3,7 +3,7 @@ plugins {
 }
 
 plugins {
-	id 'org.springframework.boot' version '2.5.4'
+	id 'org.springframework.boot' version '2.6.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
 }
@@ -28,7 +28,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework:spring-web'
     implementation 'org.awaitility:awaitility'
-	implementation 'org.bouncycastle:bcpg-jdk15to18:1.68'
+	implementation 'org.bouncycastle:bcpg-jdk15to18:1.70'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
