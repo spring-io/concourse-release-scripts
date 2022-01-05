@@ -11,7 +11,7 @@ resources:
   source:
     uri: ((github-repo))
     username: ((github-username))
-    password: ((github-password))
+    password: ((github-ci-release-token))
     branch: ((branch))
 - name: ci-images-git-repo
   type: git
