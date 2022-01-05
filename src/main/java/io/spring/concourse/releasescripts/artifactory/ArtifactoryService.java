@@ -16,8 +16,6 @@
 
 package io.spring.concourse.releasescripts.artifactory;
 
-import java.net.URI;
-
 import io.spring.concourse.releasescripts.ReleaseInfo;
 import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse;
 import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse.Status;
@@ -50,6 +48,8 @@ public class ArtifactoryService {
 
 	private static final String STAGING_REPO = "libs-staging-local";
 
+	private final String rootUri;
+
 	private final RestTemplate restTemplate;
 
 	public ArtifactoryService(RestTemplateBuilder builder, ArtifactoryProperties artifactoryProperties) {
@@ -58,7 +58,7 @@ public class ArtifactoryService {
 		if (StringUtils.hasLength(username)) {
 			builder = builder.basicAuthentication(username, password);
 		}
-		builder.rootUri(artifactoryProperties.getUrl());
+		this.rootUri = artifactoryProperties.getUrl();
 		this.restTemplate = builder.build();
 	}
 
@@ -73,8 +73,8 @@ public class ArtifactoryService {
 		String buildNumber = releaseInfo.getBuildNumber();
 		logger.info("Promoting " + buildName + "/" + buildNumber + " to " + request.getTargetRepo());
 		RequestEntity<PromotionRequest> requestEntity = RequestEntity
-				.post(PROMOTION_URL + buildName + "/" + buildNumber).contentType(MediaType.APPLICATION_JSON)
-				.body(request);
+				.post(this.rootUri + PROMOTION_URL + buildName + "/" + buildNumber)
+				.contentType(MediaType.APPLICATION_JSON).body(request);
 		try {
 			this.restTemplate.exchange(requestEntity, String.class);
 			logger.debug("Promotion complete");
@@ -94,8 +94,8 @@ public class ArtifactoryService {
 	private boolean isAlreadyPromoted(String buildName, String buildNumber, String targetRepo) {
 		try {
 			logger.debug("Checking if already promoted");
-			ResponseEntity<BuildInfoResponse> entity = this.restTemplate
-					.getForEntity(BUILD_INFO_URL + buildName + "/" + buildNumber, BuildInfoResponse.class);
+			ResponseEntity<BuildInfoResponse> entity = this.restTemplate.getForEntity(
+					this.rootUri + BUILD_INFO_URL + buildName + "/" + buildNumber, BuildInfoResponse.class);
 			Status[] statuses = entity.getBody().getBuildInfo().getStatuses();
 			Status status = (statuses != null) ? statuses[0] : null;
 			if (status == null) {
