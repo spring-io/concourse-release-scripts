@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "artifactory")
 public class ArtifactoryProperties {
 
-	private String url;
+	private String url = "https://repo.spring.io";
 
 	private String username;
 
