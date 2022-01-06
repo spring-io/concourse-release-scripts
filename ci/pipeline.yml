@@ -3,7 +3,7 @@ resource_types:
   type: registry-image
   source:
     repository: springio/artifactory-resource
-    tag: 0.0.12
+    tag: 0.0.17
 resources:
 - name: git-repo
   type: git
@@ -28,6 +28,13 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     tag: 0.1.x
+- name: concourse-release-scripts-image
+  type: docker-image
+  icon: docker
+  source:
+    repository: springio/concourse-release-scripts
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
 - name: artifactory-repo
   type: artifactory-resource
   icon: package-variant
@@ -77,6 +84,14 @@ jobs:
       threads: 8
     get_params:
       threads: 8
+  - put: concourse-release-scripts-image
+    params:
+      build: .
+      dockerfile: git-repo/Dockerfile
+      tag: built-artifact/version
+      build_args:
+        root: git-repo
+        jar:  built-artifact/concourse-release-scripts.jar
 - name: stage-release
   serial: true
   plan:
@@ -107,18 +122,23 @@ jobs:
     params:
       download_artifacts: true
       save_build_info: true
-  - task: promote
-    image: ci-image
-    file: git-repo/ci/tasks/promote.yml
+  - do:
+    - task: promote
+      image: ci-image
+      file: git-repo/ci/tasks/promote.yml
+      params:
+        RELEASE_TYPE: RELEASE
+        ARTIFACTORY_SERVER: ((artifactory-server))
+        ARTIFACTORY_USERNAME: ((artifactory-username))
+        ARTIFACTORY_PASSWORD: ((artifactory-password))
+  - put: concourse-release-scripts-image
     params:
-      RELEASE_TYPE: RELEASE
-      ARTIFACTORY_SERVER: ((artifactory-server))
-      ARTIFACTORY_USERNAME: ((artifactory-username))
-      ARTIFACTORY_PASSWORD: ((artifactory-password))
-      BINTRAY_SUBJECT: ((bintray-subject))
-      BINTRAY_REPO: ((bintray-repo))
-      BINTRAY_USERNAME: ((bintray-username))
-      BINTRAY_API_KEY: ((bintray-api-key))
+      build: .
+      dockerfile: git-repo/Dockerfile
+      tag: built-artifact/version
+      build_args:
+        root: git-repo
+        jar:  built-artifact/concourse-release-scripts.jar
 groups:
 - name: "build"
   jobs: ["build"]

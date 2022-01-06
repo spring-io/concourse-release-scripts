@@ -1,15 +1,15 @@
 = Concourse Release Scripts
 
 A Spring Boot application for distributing build artifacts to public repositories.
-
+This is made available as a https://repo.spring.io/ui/native/release/io/spring/concourse/releasescripts/concourse-release-scripts[JAR] or a https://hub.docker.com/r/springio/concourse-release-scripts/[Docker image].
 
 == Overview
 
-The Concourse Release Scripts application can be included in Concourse container build images to distribute build artifacts to public repositories.
+The Concourse Release Scripts application can be used anywhere by using the JAR directly; if used in a Concourse CI environment, the container image is a better fit for job tasks (see <<Concourse Configuration>>).
 
-This is a command line application and it should be used as such in build scripts.
 To configure the app, add an `application.yml` file in the same folder or in `./config`.
-For more on that, see the https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-application-property-files[Spring Boot reference documentation]. The available configuration options are described in the <<Configuration Properties>> section.
+For more on that, see the https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-application-property-files[Spring Boot reference documentation].
+The available configuration options are described in the <<Configuration Properties>> section.
 
 [source,sh,subs="verbatim,attributes"]
 .Launching the application on the CLI
@@ -72,7 +72,7 @@ java -jar /concourse-release-scripts.jar $COMMAND $RELEASE_TYPE $BUILD_INFO_LOCA
 
 Where:
 
-* `$COMMAND` is the command name: `promote`, `distribute` or `syncToMavenCentral`
+* `$COMMAND` is the command name: `promote`, `publishToCentral` or `publishToSdkMan`
 * `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
 * `$BUILD_INFO_LOCATION` should point to the absolute location of the artifactory build file info (e.g. `/local-repository/build-info.json`)
 
@@ -118,6 +118,22 @@ This step can be done with the https://github.com/spring-io/artifactory-resource
 
 This command sends a request to the Artifactory REST API to promote artifacts from a staging repository to a target repository.
 
+The chosen target repository depends on the type of release given as an argument:
+
+* milestone ("M") staging repositories are promoted to `"libs-milestone-local"`
+* release candidate ("RC") staging repositories are promoted to `"libs-milestone-local"`
+* release ("RELEASE") staging repositories  are promoted to `"libs-release-local"`
+
+[source,sh,subs="verbatim,attributes"]
+.Command example
+----
+java -jar /concourse-release-scripts.jar promote $RELEASE_TYPE $BUILD_INFO_LOCATION
+----
+
+Where:
+
+* `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
+* `$BUILD_INFO_LOCATION` should point to the absolute location of the artifactory build file info (e.g. `/local-repository/build-info.json`)
 
 === Publish an artifact to SDKMAN!
 
@@ -132,3 +148,51 @@ Where:
 * `$RELEASE_TYPE` is the type of release: `"M"` (milestones), `"RC"` (release candidates) or `"RELEASE"`
 * `$VERSION` the actual artifact version
 * `$BRANCH` the git branch the artifact is being tagged and released from
+
+== Concourse Configuration
+
+You can use the Concourse Release Scripts Docker image as a task in your Concourse pipeline.
+Here is an example of a task file for a promotion job step:
+
+[source,yml,subs="verbatim,attributes"]
+.promote.yml
+----
+---
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: springio/concourse-release-scripts
+    tag: '0.3.4'
+inputs:
+- name: git-repo
+- name: artifactory-repo
+outputs:
+- name: version
+params:
+  RELEASE_TYPE:
+  ARTIFACTORY_SERVER:
+  ARTIFACTORY_USERNAME:
+  ARTIFACTORY_PASSWORD:
+run:
+  path: git-repo/ci/scripts/promote.sh
+----
+
+And its companion script file:
+
+[source,sh,subs="verbatim,attributes"]
+.promote.sh
+----
+#!/bin/bash
+
+pushd artifactory-repo > /dev/null
+version=$( get_revision_from_buildinfo )
+popd > /dev/null
+
+export BUILD_INFO_LOCATION=$(pwd)/artifactory-repo/build-info.json
+
+java -jar /concourse-release-scripts.jar promote $RELEASE_TYPE $BUILD_INFO_LOCATION > /dev/null || { exit 1; }
+
+echo "Promotion complete"
+echo $version > version/version
+----

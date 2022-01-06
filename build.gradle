@@ -33,6 +33,18 @@ dependencies {
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
 
+jar {
+	enabled = false
+}
+
+task copyFinalJar(type: Copy) {
+	from bootJar
+	rename { "concourse-release-scripts.jar" }
+	into buildDir
+}
+
+assemble.dependsOn copyFinalJar
+
 test {
 	useJUnitPlatform()
 }

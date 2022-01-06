@@ -6,6 +6,4 @@ branch: "main"
 build-name: "concourse-release-scripts"
 pipeline-name: "concourse-release-scripts"
 concourse-url: "https://ci.spring.io"
-bintray-subject: "spring"
-bintray-repo: "jars"
 task-timeout: 45m
