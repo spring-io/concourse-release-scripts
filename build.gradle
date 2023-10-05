@@ -24,13 +24,12 @@ repositories {
 }
 
 dependencies {
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	implementation 'org.springframework.boot:spring-boot-starter-json'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework:spring-web'
-    implementation 'org.awaitility:awaitility'
 	implementation 'org.bouncycastle:bcpg-jdk15to18:1.70'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 jar {
