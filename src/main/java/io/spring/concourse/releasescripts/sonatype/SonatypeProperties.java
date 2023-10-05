@@ -96,7 +96,7 @@ public class SonatypeProperties {
 	}
 
 	@Deprecated
-	@DeprecatedConfigurationProperty(replacement = "sonatype.stating-profile")
+	@DeprecatedConfigurationProperty(replacement = "sonatype.staging-profile")
 	public String getStagingProfileId() {
 		return this.stagingProfileId;
 	}
