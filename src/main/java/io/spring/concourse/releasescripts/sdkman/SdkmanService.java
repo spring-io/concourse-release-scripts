@@ -41,7 +41,7 @@ public class SdkmanService {
 
 	private static final String SDKMAN_URL = "https://vendors.sdkman.io/";
 
-	private static final String DOWNLOAD_BASE_URL = "https://repo.spring.io/simple/libs-release-local/";
+	private static final String DOWNLOAD_BASE_URL = "https://repo.maven.apache.org/maven2/";
 
 	private final RestTemplate restTemplate;
 
@@ -67,9 +67,10 @@ public class SdkmanService {
 	private void broadcast(String version) {
 		BroadcastRequest broadcastRequest = new BroadcastRequest(this.properties.getCandidate(), version);
 		RequestEntity<BroadcastRequest> broadcastEntity = RequestEntity.post(URI.create(SDKMAN_URL + "announce/struct"))
-				.header(CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
-				.header(CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
-				.contentType(MediaType.APPLICATION_JSON).body(broadcastRequest);
+			.header(this.CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
+			.header(this.CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(broadcastRequest);
 		this.restTemplate.exchange(broadcastEntity, String.class);
 		logger.debug("Broadcast complete");
 	}
@@ -78,9 +79,10 @@ public class SdkmanService {
 		logger.debug("Making this version the default");
 		Request request = new Request(this.properties.getCandidate(), version);
 		RequestEntity<Request> requestEntity = RequestEntity.put(URI.create(SDKMAN_URL + "default"))
-				.header(CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
-				.header(CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
-				.contentType(MediaType.APPLICATION_JSON).body(request);
+			.header(this.CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
+			.header(this.CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(request);
 		this.restTemplate.exchange(requestEntity, String.class);
 		logger.debug("Make default complete");
 	}
@@ -90,9 +92,10 @@ public class SdkmanService {
 		ReleaseRequest releaseRequest = new ReleaseRequest(this.properties.getCandidate(), version,
 				DOWNLOAD_BASE_URL + artifact.buildArtifactPath(version));
 		RequestEntity<ReleaseRequest> releaseEntity = RequestEntity.post(URI.create(SDKMAN_URL + "release"))
-				.header(CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
-				.header(CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
-				.contentType(MediaType.APPLICATION_JSON).body(releaseRequest);
+			.header(this.CONSUMER_KEY_HEADER, this.properties.getConsumerKey())
+			.header(this.CONSUMER_TOKEN_HEADER, this.properties.getConsumerToken())
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(releaseRequest);
 		this.restTemplate.exchange(releaseEntity, String.class);
 		logger.debug("Release complete");
 	}

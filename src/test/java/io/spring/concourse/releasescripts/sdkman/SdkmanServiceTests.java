@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,6 @@ class SdkmanServiceTests {
 	private SdkmanService service;
 
 	@Autowired
-	private SdkmanProperties properties;
-
-	@Autowired
 	private MockRestServiceServer server;
 
 	@AfterEach
@@ -57,9 +54,9 @@ class SdkmanServiceTests {
 	}
 
 	@Test
-	void publishWhenMakeDefaultTrue() throws Exception {
+	void publishWhenMakeDefaultTrue() {
 		setupExpectation("https://vendors.sdkman.io/release",
-				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\", \"url\": \"https://repo.spring.io/simple/libs-release-local/org/springframework/boot/spring-boot-cli/1.2.3/spring-boot-cli-1.2.3-bin.zip\"}");
+				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\", \"url\": \"https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-cli/1.2.3/spring-boot-cli-1.2.3-bin.zip\"}");
 		setupExpectation("https://vendors.sdkman.io/default", "{\"candidate\": \"springboot\", \"version\": \"1.2.3\"}",
 				HttpMethod.PUT);
 		setupExpectation("https://vendors.sdkman.io/announce/struct",
@@ -69,9 +66,9 @@ class SdkmanServiceTests {
 	}
 
 	@Test
-	void publishWhenMakeDefaultFalse() throws Exception {
+	void publishWhenMakeDefaultFalse() {
 		setupExpectation("https://vendors.sdkman.io/release",
-				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\", \"url\": \"https://repo.spring.io/simple/libs-release-local/org/springframework/boot/spring-boot-cli/1.2.3/spring-boot-cli-1.2.3-bin.zip\"}");
+				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\", \"url\": \"https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-cli/1.2.3/spring-boot-cli-1.2.3-bin.zip\"}");
 		setupExpectation("https://vendors.sdkman.io/announce/struct",
 				"{\"candidate\": \"springboot\", \"version\": \"1.2.3\"}");
 		this.service.publish("1.2.3", false);
@@ -83,10 +80,13 @@ class SdkmanServiceTests {
 	}
 
 	private void setupExpectation(String url, String body, HttpMethod method) {
-		this.server.expect(requestTo(url)).andExpect(method(method)).andExpect(content().json(body))
-				.andExpect(header("Consumer-Key", "sdkman-consumer-key"))
-				.andExpect(header("Consumer-Token", "sdkman-consumer-token"))
-				.andExpect(header("Content-Type", MediaType.APPLICATION_JSON.toString())).andRespond(withSuccess());
+		this.server.expect(requestTo(url))
+			.andExpect(method(method))
+			.andExpect(content().json(body))
+			.andExpect(header("Consumer-Key", "sdkman-consumer-key"))
+			.andExpect(header("Consumer-Token", "sdkman-consumer-token"))
+			.andExpect(header("Content-Type", MediaType.APPLICATION_JSON.toString()))
+			.andRespond(withSuccess());
 	}
 
 }
