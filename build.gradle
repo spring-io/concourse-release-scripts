@@ -37,13 +37,9 @@ jar {
 	enabled = false
 }
 
-task copyFinalJar(type: Copy) {
-	from bootJar
-	rename { "concourse-release-scripts.jar" }
-	into buildDir
+tasks.named("bootJar").configure {
+	archiveVersion = ''
 }
-
-assemble.dependsOn copyFinalJar
 
 test {
 	useJUnitPlatform()

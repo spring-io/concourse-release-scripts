@@ -9,6 +9,6 @@ pushd git-repo > /dev/null
 version=$( awk -F '=' '$1 == "version" { print $2 }' gradle.properties )
 popd > /dev/null
 
-cp git-repo/build/concourse-release-scripts.jar built-artifact/
+cp git-repo/build/libs/concourse-release-scripts.jar built-artifact/
 echo $version > built-artifact/version
 
