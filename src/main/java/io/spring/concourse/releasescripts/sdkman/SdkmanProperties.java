@@ -40,6 +40,8 @@ public class SdkmanProperties {
 	@Pattern(regexp = "[a-z.]+:[a-z\\-]+:[^:]+(:[a-z.]+(:[a-z]+)?)?")
 	private String artifact;
 
+	private String broadcastUrl;
+
 	public String getConsumerKey() {
 		return this.consumerKey;
 	}
@@ -70,6 +72,14 @@ public class SdkmanProperties {
 
 	public void setArtifact(String artifact) {
 		this.artifact = artifact;
+	}
+
+	public String getBroadcastUrl() {
+		return this.broadcastUrl;
+	}
+
+	public void setBroadcastUrl(String broadcastUrl) {
+		this.broadcastUrl = broadcastUrl;
 	}
 
 }
