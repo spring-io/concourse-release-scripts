@@ -163,7 +163,7 @@ image_resource:
   type: registry-image
   source:
     repository: springio/concourse-release-scripts
-    tag: '0.3.4'
+    tag: '0.4.0'
 inputs:
 - name: git-repo
 - name: artifactory-repo
