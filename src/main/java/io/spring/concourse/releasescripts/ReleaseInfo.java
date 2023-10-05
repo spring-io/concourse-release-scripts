@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,10 +51,12 @@ public class ReleaseInfo {
 		propertyMapper.from(moduleInfo[0]).to(info::setGroupId);
 		propertyMapper.from(moduleInfo[2]).to(info::setVersion);
 		String markerArtifact = Arrays.stream(buildInfo.getModules())
-				.filter(module -> Arrays.stream(module.getArtifacts())
-						.anyMatch(artifact -> artifact.getType().equals("jar")))
-				.map(BuildInfoResponse.Module::getId).findFirst().orElseThrow(() -> new IllegalStateException(
-						"Could not find Jar module in build info: " + buildInfo.getNumber()));
+			.filter(module -> Arrays.stream(module.getArtifacts())
+				.anyMatch(artifact -> artifact.getType().equals("jar")))
+			.map(BuildInfoResponse.Module::getId)
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException(
+					"Could not find Jar module in build info: " + buildInfo.getNumber()));
 		info.setMarkerArtifact(MarkerArtifact.fromCoordinates(markerArtifact));
 		return info;
 	}

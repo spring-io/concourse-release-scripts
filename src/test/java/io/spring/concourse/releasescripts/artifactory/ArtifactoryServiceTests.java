@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,12 +66,13 @@ class ArtifactoryServiceTests {
 	@Test
 	void promoteWhenSuccessful() {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
-				.andExpect(method(HttpMethod.POST))
-				.andExpect(content().json(
-						"{\"status\": \"staged\", \"sourceRepo\": \"libs-staging-local\", \"targetRepo\": \"libs-milestone-local\"}"))
-				.andExpect(header("Authorization", "Basic " + Base64Utils.encodeToString(String
-						.format("%s:%s", this.properties.getUsername(), this.properties.getPassword()).getBytes())))
-				.andExpect(header("Content-Type", MediaType.APPLICATION_JSON.toString())).andRespond(withSuccess());
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(content().json(
+					"{\"status\": \"staged\", \"sourceRepo\": \"libs-staging-local\", \"targetRepo\": \"libs-milestone-local\"}"))
+			.andExpect(header("Authorization", "Basic " + Base64Utils.encodeToString(
+					String.format("%s:%s", this.properties.getUsername(), this.properties.getPassword()).getBytes())))
+			.andExpect(header("Content-Type", MediaType.APPLICATION_JSON.toString()))
+			.andRespond(withSuccess());
 		this.service.promote("libs-milestone-local", getReleaseInfo());
 		this.server.verify();
 	}
@@ -79,9 +80,9 @@ class ArtifactoryServiceTests {
 	@Test
 	void promoteWhenArtifactsAlreadyPromoted() {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
-				.andRespond(withStatus(HttpStatus.CONFLICT));
+			.andRespond(withStatus(HttpStatus.CONFLICT));
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
-				.andRespond(withJsonFrom("build-info-response.json"));
+			.andRespond(withJsonFrom("build-info-response.json"));
 		this.service.promote("libs-release-local", getReleaseInfo());
 		this.server.verify();
 	}
@@ -89,33 +90,33 @@ class ArtifactoryServiceTests {
 	@Test
 	void promoteWhenCheckForArtifactsAlreadyPromotedForbidden() {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
-				.andRespond(withStatus(HttpStatus.CONFLICT));
+			.andRespond(withStatus(HttpStatus.CONFLICT));
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
-				.andRespond(withStatus(HttpStatus.FORBIDDEN));
+			.andRespond(withStatus(HttpStatus.FORBIDDEN));
 		assertThatExceptionOfType(HttpClientErrorException.class)
-				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
+			.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
 		this.server.verify();
 	}
 
 	@Test
 	void promoteWhenCheckForArtifactsAlreadyPromotedMissingStatuses() {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
-				.andRespond(withStatus(HttpStatus.CONFLICT));
+			.andRespond(withStatus(HttpStatus.CONFLICT));
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
-				.andRespond(withJsonFrom("not-staged-build-info-response.json"));
+			.andRespond(withJsonFrom("not-staged-build-info-response.json"));
 		assertThatExceptionOfType(HttpClientErrorException.class)
-				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
+			.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
 		this.server.verify();
 	}
 
 	@Test
 	void promoteWhenPromotionFails() {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
-				.andRespond(withStatus(HttpStatus.CONFLICT));
+			.andRespond(withStatus(HttpStatus.CONFLICT));
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
-				.andRespond(withJsonFrom("staged-build-info-response.json"));
+			.andRespond(withJsonFrom("staged-build-info-response.json"));
 		assertThatExceptionOfType(HttpClientErrorException.class)
-				.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
+			.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
 		this.server.verify();
 	}
 

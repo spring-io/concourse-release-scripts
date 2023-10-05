@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,10 +97,12 @@ public class SonatypeService {
 
 	private String buildMarkerArtifactSha1URI(ReleaseInfo releaseInfo) {
 		ReleaseInfo.MarkerArtifact markerArtifact = releaseInfo.getMarkerArtifact();
-		return UriComponentsBuilder.fromPath(NEXUS_REPOSITORY_PATH).path(markerArtifact.getGroupId().replace('.', '/'))
-				.path("/{artifactId}/{version}/{artifactId}-{version}.jar.sha1").build(markerArtifact.getArtifactId(),
-						markerArtifact.getVersion(), markerArtifact.getArtifactId(), markerArtifact.getVersion())
-				.toString();
+		return UriComponentsBuilder.fromPath(NEXUS_REPOSITORY_PATH)
+			.path(markerArtifact.getGroupId().replace('.', '/'))
+			.path("/{artifactId}/{version}/{artifactId}-{version}.jar.sha1")
+			.build(markerArtifact.getArtifactId(), markerArtifact.getVersion(), markerArtifact.getArtifactId(),
+					markerArtifact.getVersion())
+			.toString();
 	}
 
 	/**
@@ -119,9 +121,12 @@ public class SonatypeService {
 			logger.info("Fetching stagingProfileId for:" + this.stagingProfile);
 			ProfilesResponse profiles = this.restTemplate.getForObject(NEXUS_STAGING_PATH + "/profiles",
 					ProfilesResponse.class);
-			stagingProfileId = profiles.data.stream().filter(profile -> profile.name.equals(this.stagingProfile))
-					.map(profile -> profile.id).findFirst().orElseThrow(() -> new IllegalStateException(
-							"Could not find stagingProfile named " + this.stagingProfile));
+			stagingProfileId = profiles.data.stream()
+				.filter(profile -> profile.name.equals(this.stagingProfile))
+				.map(profile -> profile.id)
+				.findFirst()
+				.orElseThrow(
+						() -> new IllegalStateException("Could not find stagingProfile named " + this.stagingProfile));
 		}
 		logger.info("Creating staging repository");
 		String buildId = releaseInfo.getBuildNumber();
@@ -170,9 +175,11 @@ public class SonatypeService {
 	private void deploy(Collection<DeployableArtifact> artifacts, String repositoryId) {
 		ExecutorService executor = Executors.newFixedThreadPool(this.threads);
 		try {
-			CompletableFuture.allOf(artifacts.stream()
+			CompletableFuture
+				.allOf(artifacts.stream()
 					.map((artifact) -> CompletableFuture.runAsync(() -> deploy(artifact, repositoryId), executor))
-					.toArray(CompletableFuture[]::new)).get(60, TimeUnit.MINUTES);
+					.toArray(CompletableFuture[]::new))
+				.get(60, TimeUnit.MINUTES);
 		}
 		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
@@ -211,7 +218,7 @@ public class SonatypeService {
 		logger.info("Close requested. Awaiting result");
 		while (true) {
 			StagingRepository repository = this.restTemplate
-					.getForObject(NEXUS_STAGING_PATH + "repository/" + stagedRepositoryId, StagingRepository.class);
+				.getForObject(NEXUS_STAGING_PATH + "repository/" + stagedRepositoryId, StagingRepository.class);
 			if (!repository.transitioning) {
 				if ("open".equals(repository.type)) {
 					logFailures(stagedRepositoryId);
@@ -234,10 +241,13 @@ public class SonatypeService {
 			StagingRepositoryActivity[] activities = this.restTemplate.getForObject(
 					NEXUS_STAGING_PATH + "repository/" + stagedRepositoryId + "/activity",
 					StagingRepositoryActivity[].class);
-			List<String> failureMessages = Stream.of(activities).flatMap((activity) -> activity.events.stream())
-					.filter((event) -> event.severity > 0).flatMap((event) -> event.properties.stream())
-					.filter((property) -> "failureMessage".equals(property.name))
-					.map((property) -> "    " + property.value).collect(Collectors.toList());
+			List<String> failureMessages = Stream.of(activities)
+				.flatMap((activity) -> activity.events.stream())
+				.filter((event) -> event.severity > 0)
+				.flatMap((event) -> event.properties.stream())
+				.filter((property) -> "failureMessage".equals(property.name))
+				.map((property) -> "    " + property.value)
+				.collect(Collectors.toList());
 			if (failureMessages.isEmpty()) {
 				logger.error("Close failed for unknown reasons");
 			}

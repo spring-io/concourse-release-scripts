@@ -1,5 +1,5 @@
 plugins {
-	id "io.spring.javaformat" version "0.0.27"
+	id "io.spring.javaformat" version "0.0.39"
 }
 
 plugins {

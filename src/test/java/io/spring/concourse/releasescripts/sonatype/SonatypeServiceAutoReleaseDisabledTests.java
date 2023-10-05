@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,20 +63,22 @@ class SonatypeServiceAutoReleaseDisabledTests {
 
 	@Test
 	void publishWithAutoPromoteDisabledShouldNotPromote() throws IOException {
-		this.server.expect(SonatypeServerUtils.requestTestArtifact()).andExpect(method(HttpMethod.GET))
-				.andRespond(withStatus(HttpStatus.NOT_FOUND));
+		this.server.expect(SonatypeServerUtils.requestTestArtifact())
+			.andExpect(method(HttpMethod.GET))
+			.andRespond(withStatus(HttpStatus.NOT_FOUND));
 		String stagingProfileId = SonatypeServerUtils.setupStagingProfile(this.server);
 		String stagingRepositoryId = SonatypeServerUtils.setupStagingRepositoryCreation(this.server, stagingProfileId);
 
 		Path artifactsRoot = new File("src/test/resources/io/spring/concourse/releasescripts/sonatype/artifactory-repo")
-				.toPath();
+			.toPath();
 
 		Set<RequestMatcher> uploads = SonatypeServerUtils.generateUploadRequests(artifactsRoot, stagingRepositoryId);
 
 		AnyOfRequestMatcher uploadRequestsMatcher = anyOf(uploads);
 		assertThat(uploadRequestsMatcher.getCandidates()).hasSize(150);
-		this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher).andExpect(method(HttpMethod.PUT))
-				.andRespond(withSuccess());
+		this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher)
+			.andExpect(method(HttpMethod.PUT))
+			.andRespond(withSuccess());
 
 		SonatypeServerUtils.attemptFinishStagingRepository(server, stagingProfileId, stagingRepositoryId, true);
 

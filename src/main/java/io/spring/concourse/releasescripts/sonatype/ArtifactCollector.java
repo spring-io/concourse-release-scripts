@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,15 +42,20 @@ class ArtifactCollector {
 	}
 
 	private Predicate<Path> excludeFilter(List<String> exclude) {
-		Predicate<String> patternFilter = exclude.stream().map(Pattern::compile).map(Pattern::asPredicate)
-				.reduce((path) -> false, Predicate::or).negate();
+		Predicate<String> patternFilter = exclude.stream()
+			.map(Pattern::compile)
+			.map(Pattern::asPredicate)
+			.reduce((path) -> false, Predicate::or)
+			.negate();
 		return (path) -> patternFilter.test(path.toString());
 	}
 
 	Collection<DeployableArtifact> collectArtifacts(Path root) {
 		try (Stream<Path> artifacts = Files.walk(root)) {
-			return artifacts.filter(Files::isRegularFile).filter(this.excludeFilter)
-					.map((artifact) -> deployableArtifact(artifact, root)).collect(Collectors.toList());
+			return artifacts.filter(Files::isRegularFile)
+				.filter(this.excludeFilter)
+				.map((artifact) -> deployableArtifact(artifact, root))
+				.collect(Collectors.toList());
 		}
 		catch (IOException ex) {
 			throw new RuntimeException("Could not read artifacts from '" + root + "'");

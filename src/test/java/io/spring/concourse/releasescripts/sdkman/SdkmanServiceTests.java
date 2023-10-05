@@ -96,10 +96,13 @@ class SdkmanServiceTests {
 	}
 
 	private void setupExpectation(String url, String body, HttpMethod method) {
-		this.server.expect(requestTo(url)).andExpect(method(method)).andExpect(content().json(body, true))
-				.andExpect(header("Consumer-Key", "sdkman-consumer-key"))
-				.andExpect(header("Consumer-Token", "sdkman-consumer-token"))
-				.andExpect(header("Content-Type", MediaType.APPLICATION_JSON.toString())).andRespond(withSuccess());
+		this.server.expect(requestTo(url))
+			.andExpect(method(method))
+			.andExpect(content().json(body, true))
+			.andExpect(header("Consumer-Key", "sdkman-consumer-key"))
+			.andExpect(header("Consumer-Token", "sdkman-consumer-token"))
+			.andExpect(header("Content-Type", MediaType.APPLICATION_JSON.toString()))
+			.andRespond(withSuccess());
 	}
 
 }

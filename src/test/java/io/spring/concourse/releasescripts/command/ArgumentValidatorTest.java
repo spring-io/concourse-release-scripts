@@ -38,7 +38,7 @@ public class ArgumentValidatorTest {
 		Throwable failure = catchThrowable(() -> argumentValidator.validate(Collections.emptyList()));
 
 		assertThat(failure).isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Missing argument(s): $ONE, $TWO, $THREE");
+			.hasMessage("Missing argument(s): $ONE, $TWO, $THREE");
 	}
 
 }

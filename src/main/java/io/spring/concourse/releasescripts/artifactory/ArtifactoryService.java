@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,9 @@ public class ArtifactoryService {
 		String buildNumber = releaseInfo.getBuildNumber();
 		logger.info("Promoting " + buildName + "/" + buildNumber + " to " + request.getTargetRepo());
 		RequestEntity<PromotionRequest> requestEntity = RequestEntity
-				.post(this.rootUri + PROMOTION_URL + buildName + "/" + buildNumber)
-				.contentType(MediaType.APPLICATION_JSON).body(request);
+			.post(this.rootUri + PROMOTION_URL + buildName + "/" + buildNumber)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(request);
 		try {
 			this.restTemplate.exchange(requestEntity, String.class);
 			logger.debug("Promotion complete");
@@ -94,8 +95,8 @@ public class ArtifactoryService {
 	private boolean isAlreadyPromoted(String buildName, String buildNumber, String targetRepo) {
 		try {
 			logger.debug("Checking if already promoted");
-			ResponseEntity<BuildInfoResponse> entity = this.restTemplate.getForEntity(
-					this.rootUri + BUILD_INFO_URL + buildName + "/" + buildNumber, BuildInfoResponse.class);
+			ResponseEntity<BuildInfoResponse> entity = this.restTemplate
+				.getForEntity(this.rootUri + BUILD_INFO_URL + buildName + "/" + buildNumber, BuildInfoResponse.class);
 			Status[] statuses = entity.getBody().getBuildInfo().getStatuses();
 			Status status = (statuses != null) ? statuses[0] : null;
 			if (status == null) {

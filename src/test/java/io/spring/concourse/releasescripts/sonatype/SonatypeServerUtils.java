@@ -38,30 +38,33 @@ public class SonatypeServerUtils {
 
 	public static String setupStagingProfile(MockRestServiceServer server) {
 		server.expect(requestTo("/service/local/staging/profiles"))
-				.andExpect(header("Accept", "application/json, application/*+json"))
-				.andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
-						.body(getResource("profiles.json")));
+			.andExpect(header("Accept", "application/json, application/*+json"))
+			.andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
+				.body(getResource("profiles.json")));
 		return "2e3ed47dc2510";
 	}
 
 	public static Set<RequestMatcher> generateUploadRequests(Path artifactsRoot, String stagingRepositoryId)
 			throws IOException {
-		return Files.walk(artifactsRoot).filter(Files::isRegularFile).map(artifactsRoot::relativize)
-				.filter((artifact) -> !"build-info.json".equals(artifact.toString()))
-				.map((artifact) -> requestTo(
-						"/service/local/staging/deployByRepositoryId/" + stagingRepositoryId + "/" + artifact))
-				.collect(Collectors.toSet());
+		return Files.walk(artifactsRoot)
+			.filter(Files::isRegularFile)
+			.map(artifactsRoot::relativize)
+			.filter((artifact) -> !"build-info.json".equals(artifact.toString()))
+			.map((artifact) -> requestTo(
+					"/service/local/staging/deployByRepositoryId/" + stagingRepositoryId + "/" + artifact))
+			.collect(Collectors.toSet());
 	}
 
 	public static String setupStagingRepositoryCreation(MockRestServiceServer server, String stagingProfileId) {
 		String stagedRepositoryId = "example-6789";
 		server.expect(requestTo("/service/local/staging/profiles/" + stagingProfileId + "/start"))
-				.andExpect(method(HttpMethod.POST)).andExpect(header("Content-Type", "application/json"))
-				.andExpect(header("Accept", "application/json, application/*+json"))
-				.andExpect(jsonPath("$.data.description").value("example-build-1"))
-				.andRespond(withStatus(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
-						.body("{\"data\":{\"stagedRepositoryId\":\"" + stagedRepositoryId
-								+ "\", \"description\":\"example-build\"}}"));
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(header("Content-Type", "application/json"))
+			.andExpect(header("Accept", "application/json, application/*+json"))
+			.andExpect(jsonPath("$.data.description").value("example-build-1"))
+			.andRespond(withStatus(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
+				.body("{\"data\":{\"stagedRepositoryId\":\"" + stagedRepositoryId
+						+ "\", \"description\":\"example-build\"}}"));
 		return stagedRepositoryId;
 	}
 
@@ -69,17 +72,20 @@ public class SonatypeServerUtils {
 			String stagingRepositoryId, boolean closed) {
 		String closeStatus = closed ? "closed" : "open";
 		server.expect(requestTo("/service/local/staging/profiles/" + stagingProfileId + "/finish"))
-				.andExpect(method(HttpMethod.POST)).andExpect(header("Content-Type", "application/json"))
-				.andExpect(header("Accept", "application/json, application/*+json"))
-				.andRespond(withStatus(HttpStatus.CREATED));
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(header("Content-Type", "application/json"))
+			.andExpect(header("Accept", "application/json, application/*+json"))
+			.andRespond(withStatus(HttpStatus.CREATED));
 		server.expect(ExpectedCount.times(2), requestTo("/service/local/staging/repository/" + stagingRepositoryId))
-				.andExpect(method(HttpMethod.GET)).andExpect(header("Accept", "application/json, application/*+json"))
-				.andRespond(withSuccess().contentType(MediaType.APPLICATION_JSON)
-						.body("{\"type\":\"open\", \"transitioning\":true}"));
+			.andExpect(method(HttpMethod.GET))
+			.andExpect(header("Accept", "application/json, application/*+json"))
+			.andRespond(withSuccess().contentType(MediaType.APPLICATION_JSON)
+				.body("{\"type\":\"open\", \"transitioning\":true}"));
 		server.expect(requestTo("/service/local/staging/repository/" + stagingRepositoryId))
-				.andExpect(method(HttpMethod.GET)).andExpect(header("Accept", "application/json, application/*+json"))
-				.andRespond(withSuccess().contentType(MediaType.APPLICATION_JSON)
-						.body("{\"type\":\"" + closeStatus + "\", \"transitioning\":false}"));
+			.andExpect(method(HttpMethod.GET))
+			.andExpect(header("Accept", "application/json, application/*+json"))
+			.andRespond(withSuccess().contentType(MediaType.APPLICATION_JSON)
+				.body("{\"type\":\"" + closeStatus + "\", \"transitioning\":false}"));
 	}
 
 	private static ClassPathResource getResource(String path) {

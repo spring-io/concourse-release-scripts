@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,41 +71,45 @@ class SonatypeServiceTests {
 
 	@Test
 	void publishWhenAlreadyPublishedShouldNotPublish() {
-		this.server.expect(SonatypeServerUtils.requestTestArtifact()).andExpect(method(HttpMethod.GET))
-				.andRespond(withSuccess().body("ce8d8b6838ecceb68962b9150b18682f4237ccf71".getBytes()));
+		this.server.expect(SonatypeServerUtils.requestTestArtifact())
+			.andExpect(method(HttpMethod.GET))
+			.andRespond(withSuccess().body("ce8d8b6838ecceb68962b9150b18682f4237ccf71".getBytes()));
 		Path artifactsRoot = new File("src/test/resources/io/spring/concourse/releasescripts/sonatype/artifactory-repo")
-				.toPath();
+			.toPath();
 		this.service.publish(SonatypeServerUtils.getReleaseInfo(), artifactsRoot);
 		this.server.verify();
 	}
 
 	@Test
 	void publishWithSuccessfulClose() throws IOException {
-		this.server.expect(SonatypeServerUtils.requestTestArtifact()).andExpect(method(HttpMethod.GET))
-				.andRespond(withStatus(HttpStatus.NOT_FOUND));
+		this.server.expect(SonatypeServerUtils.requestTestArtifact())
+			.andExpect(method(HttpMethod.GET))
+			.andRespond(withStatus(HttpStatus.NOT_FOUND));
 		String stagingProfileId = SonatypeServerUtils.setupStagingProfile(this.server);
 		String stagingRepositoryId = SonatypeServerUtils.setupStagingRepositoryCreation(this.server, stagingProfileId);
 
 		Path artifactsRoot = new File("src/test/resources/io/spring/concourse/releasescripts/sonatype/artifactory-repo")
-				.toPath();
+			.toPath();
 
 		Set<RequestMatcher> uploads = SonatypeServerUtils.generateUploadRequests(artifactsRoot, stagingRepositoryId);
 
 		AnyOfRequestMatcher uploadRequestsMatcher = anyOf(uploads);
 		assertThat(uploadRequestsMatcher.getCandidates()).hasSize(150);
-		this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher).andExpect(method(HttpMethod.PUT))
-				.andRespond(withSuccess());
+		this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher)
+			.andExpect(method(HttpMethod.PUT))
+			.andRespond(withSuccess());
 
 		SonatypeServerUtils.attemptFinishStagingRepository(server, stagingProfileId, stagingRepositoryId, true);
 
-		this.server.expect(requestTo("/service/local/staging/bulk/promote")).andExpect(method(HttpMethod.POST))
-				.andExpect(header("Content-Type", "application/json"))
-				.andExpect(header("Accept", "application/json, application/*+json"))
-				.andExpect(jsonPath("$.data.description").value("Releasing example-build-1"))
-				.andExpect(jsonPath("$.data.autoDropAfterRelease").value(true))
-				.andExpect(jsonPath("$.data.stagedRepositoryIds")
-						.value(equalTo(Collections.singletonList(stagingRepositoryId))))
-				.andRespond(withSuccess());
+		this.server.expect(requestTo("/service/local/staging/bulk/promote"))
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(header("Content-Type", "application/json"))
+			.andExpect(header("Accept", "application/json, application/*+json"))
+			.andExpect(jsonPath("$.data.description").value("Releasing example-build-1"))
+			.andExpect(jsonPath("$.data.autoDropAfterRelease").value(true))
+			.andExpect(jsonPath("$.data.stagedRepositoryIds")
+				.value(equalTo(Collections.singletonList(stagingRepositoryId))))
+			.andRespond(withSuccess());
 		this.service.publish(SonatypeServerUtils.getReleaseInfo(), artifactsRoot);
 		this.server.verify();
 		assertThat(uploadRequestsMatcher.getCandidates()).hasSize(0);
@@ -113,29 +117,32 @@ class SonatypeServiceTests {
 
 	@Test
 	void publishWithCloseFailureDueToRuleViolations() throws IOException {
-		this.server.expect(SonatypeServerUtils.requestTestArtifact()).andExpect(method(HttpMethod.GET))
-				.andRespond(withStatus(HttpStatus.NOT_FOUND));
+		this.server.expect(SonatypeServerUtils.requestTestArtifact())
+			.andExpect(method(HttpMethod.GET))
+			.andRespond(withStatus(HttpStatus.NOT_FOUND));
 		String stagingProfileId = SonatypeServerUtils.setupStagingProfile(this.server);
 		String stagingRepositoryId = SonatypeServerUtils.setupStagingRepositoryCreation(this.server, stagingProfileId);
 		Path artifactsRoot = new File("src/test/resources/io/spring/concourse/releasescripts/sonatype/artifactory-repo")
-				.toPath();
+			.toPath();
 		Set<RequestMatcher> uploads = SonatypeServerUtils.generateUploadRequests(artifactsRoot, stagingRepositoryId);
 
 		AnyOfRequestMatcher uploadRequestsMatcher = anyOf(uploads);
 		assertThat(uploadRequestsMatcher.getCandidates()).hasSize(150);
 
-		this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher).andExpect(method(HttpMethod.PUT))
-				.andRespond(withSuccess());
+		this.server.expect(ExpectedCount.times(150), uploadRequestsMatcher)
+			.andExpect(method(HttpMethod.PUT))
+			.andRespond(withSuccess());
 
 		SonatypeServerUtils.attemptFinishStagingRepository(server, stagingProfileId, stagingRepositoryId, false);
 
 		this.server.expect(requestTo("/service/local/staging/repository/" + stagingRepositoryId + "/activity"))
-				.andExpect(method(HttpMethod.GET)).andExpect(header("Accept", "application/json, application/*+json"))
-				.andRespond(withSuccess().contentType(MediaType.APPLICATION_JSON)
-						.body(getResource("stagingFailureActivity.json")));
+			.andExpect(method(HttpMethod.GET))
+			.andExpect(header("Accept", "application/json, application/*+json"))
+			.andRespond(withSuccess().contentType(MediaType.APPLICATION_JSON)
+				.body(getResource("stagingFailureActivity.json")));
 		assertThatExceptionOfType(RuntimeException.class)
-				.isThrownBy(() -> this.service.publish(SonatypeServerUtils.getReleaseInfo(), artifactsRoot))
-				.withMessage("Close failed");
+			.isThrownBy(() -> this.service.publish(SonatypeServerUtils.getReleaseInfo(), artifactsRoot))
+			.withMessage("Close failed");
 		this.server.verify();
 		assertThat(uploadRequestsMatcher.getCandidates()).hasSize(0);
 	}
