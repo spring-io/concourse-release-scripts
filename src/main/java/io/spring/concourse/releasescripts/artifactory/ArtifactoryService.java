@@ -17,6 +17,7 @@
 package io.spring.concourse.releasescripts.artifactory;
 
 import io.spring.concourse.releasescripts.ReleaseInfo;
+import io.spring.concourse.releasescripts.ReleaseType;
 import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse;
 import io.spring.concourse.releasescripts.artifactory.payload.BuildInfoResponse.Status;
 import io.spring.concourse.releasescripts.artifactory.payload.PromotionRequest;
@@ -36,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
  * Central class for interacting with Artifactory's REST API.
  *
  * @author Madhura Bhave
+ * @author Brian Clozel
  */
 @Component
 public class ArtifactoryService {
@@ -46,9 +48,9 @@ public class ArtifactoryService {
 
 	private static final String BUILD_INFO_URL = "/api/build/";
 
-	private static final String STAGING_REPO = "libs-staging-local";
-
 	private final String rootUri;
+
+	private final Repositories repositories;
 
 	private final RestTemplate restTemplate;
 
@@ -59,16 +61,19 @@ public class ArtifactoryService {
 			builder = builder.basicAuthentication(username, password);
 		}
 		this.rootUri = artifactoryProperties.getUrl();
+		ArtifactoryProperties.Repository repository = artifactoryProperties.getRepository();
+		this.repositories = new Repositories(repository.getStaging(), repository.getMilestone(),
+				repository.getReleaseCandidate(), repository.getRelease());
 		this.restTemplate = builder.build();
 	}
 
 	/**
 	 * Move artifacts to a target repository in Artifactory.
-	 * @param targetRepo the targetRepo
+	 * @param releaseType the release type
 	 * @param releaseInfo the release information
 	 */
-	public void promote(String targetRepo, ReleaseInfo releaseInfo) {
-		PromotionRequest request = getPromotionRequest(targetRepo);
+	public void promote(ReleaseType releaseType, ReleaseInfo releaseInfo) {
+		PromotionRequest request = getPromotionRequest(this.repositories.forReleaseType(releaseType));
 		String buildName = releaseInfo.getBuildName();
 		String buildNumber = releaseInfo.getBuildNumber();
 		logger.info("Promoting " + buildName + "/" + buildNumber + " to " + request.getTargetRepo());
@@ -113,7 +118,18 @@ public class ArtifactoryService {
 	}
 
 	private PromotionRequest getPromotionRequest(String targetRepo) {
-		return new PromotionRequest("staged", STAGING_REPO, targetRepo);
+		return new PromotionRequest("staged", this.repositories.staging(), targetRepo);
+	}
+
+	private record Repositories(String staging, String milestone, String releaseCandidate, String release) {
+
+		String forReleaseType(ReleaseType releaseType) {
+			return switch (releaseType) {
+				case MILESTONE -> milestone;
+				case RELEASE_CANDIDATE -> releaseCandidate;
+				case RELEASE -> release;
+			};
+		}
 	}
 
 }

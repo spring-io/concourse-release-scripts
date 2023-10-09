@@ -17,10 +17,15 @@
 package io.spring.concourse.releasescripts.artifactory;
 
 import java.util.Base64;
+import java.util.stream.Stream;
 
 import io.spring.concourse.releasescripts.ReleaseInfo;
+import io.spring.concourse.releasescripts.ReleaseType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -45,6 +50,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * Tests for {@link ArtifactoryService}.
  *
  * @author Madhura Bhave
+ * @author Brian Clozel
  */
 @RestClientTest(value = ArtifactoryService.class, properties = "artifactory.url=https://repo.spring.io")
 @EnableConfigurationProperties(ArtifactoryProperties.class)
@@ -64,19 +70,27 @@ class ArtifactoryServiceTests {
 		this.server.reset();
 	}
 
-	@Test
-	void promoteWhenSuccessful() {
+	@ParameterizedTest
+	@MethodSource("promotionArguments")
+	void promoteWhenSuccessful(ReleaseType releaseType, String targetRepository) {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/promote/example-build/example-build-1"))
 			.andExpect(method(HttpMethod.POST))
-			.andExpect(content().json(
-					"{\"status\": \"staged\", \"sourceRepo\": \"libs-staging-local\", \"targetRepo\": \"libs-milestone-local\"}"))
+			.andExpect(
+					content().json("{\"status\": \"staged\", \"sourceRepo\": \"libs-staging-local\", \"targetRepo\": \""
+							+ targetRepository + "\"}"))
 			.andExpect(header("Authorization", "Basic " + Base64.getEncoder()
 				.encodeToString(String.format("%s:%s", this.properties.getUsername(), this.properties.getPassword())
 					.getBytes())))
 			.andExpect(header("Content-Type", MediaType.APPLICATION_JSON.toString()))
 			.andRespond(withSuccess());
-		this.service.promote("libs-milestone-local", getReleaseInfo());
+		this.service.promote(releaseType, getReleaseInfo());
 		this.server.verify();
+	}
+
+	static Stream<Arguments> promotionArguments() {
+		return Stream.of(Arguments.of(ReleaseType.MILESTONE, "libs-milestone-local"),
+				Arguments.of(ReleaseType.RELEASE_CANDIDATE, "libs-milestone-local"),
+				Arguments.of(ReleaseType.RELEASE, "libs-release-local"));
 	}
 
 	@Test
@@ -85,7 +99,7 @@ class ArtifactoryServiceTests {
 			.andRespond(withStatus(HttpStatus.CONFLICT));
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
 			.andRespond(withJsonFrom("build-info-response.json"));
-		this.service.promote("libs-release-local", getReleaseInfo());
+		this.service.promote(ReleaseType.RELEASE, getReleaseInfo());
 		this.server.verify();
 	}
 
@@ -96,7 +110,7 @@ class ArtifactoryServiceTests {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
 			.andRespond(withStatus(HttpStatus.FORBIDDEN));
 		assertThatExceptionOfType(HttpClientErrorException.class)
-			.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
+			.isThrownBy(() -> this.service.promote(ReleaseType.RELEASE, getReleaseInfo()));
 		this.server.verify();
 	}
 
@@ -107,7 +121,7 @@ class ArtifactoryServiceTests {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
 			.andRespond(withJsonFrom("not-staged-build-info-response.json"));
 		assertThatExceptionOfType(HttpClientErrorException.class)
-			.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
+			.isThrownBy(() -> this.service.promote(ReleaseType.RELEASE, getReleaseInfo()));
 		this.server.verify();
 	}
 
@@ -118,7 +132,7 @@ class ArtifactoryServiceTests {
 		this.server.expect(requestTo("https://repo.spring.io/api/build/example-build/example-build-1"))
 			.andRespond(withJsonFrom("staged-build-info-response.json"));
 		assertThatExceptionOfType(HttpClientErrorException.class)
-			.isThrownBy(() -> this.service.promote("libs-release-local", getReleaseInfo()));
+			.isThrownBy(() -> this.service.promote(ReleaseType.RELEASE, getReleaseInfo()));
 		this.server.verify();
 	}
 

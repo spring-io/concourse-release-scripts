@@ -63,7 +63,7 @@ public class PromoteCommand implements Command {
 		byte[] content = Files.readAllBytes(new File(buildInfoLocation).toPath());
 		BuildInfoResponse buildInfoResponse = this.objectMapper.readValue(new String(content), BuildInfoResponse.class);
 		ReleaseInfo releaseInfo = ReleaseInfo.from(buildInfoResponse.getBuildInfo());
-		this.service.promote(type.getRepo(), releaseInfo);
+		this.service.promote(type, releaseInfo);
 	}
 
 }

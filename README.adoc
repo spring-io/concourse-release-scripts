@@ -31,6 +31,15 @@ artifactory:
   url: # URL of the Artifactory instance
   username: # Artifactory credentials, username
   password: # Artifactory credentials, password
+  repository:
+    # repository name for staging versions
+    staging: libs-staging-local
+    # repository name for milestone versions
+    milestone: libs-milestone-local
+    # repository name for release candidates versions
+    release-candidate: libs-milestone-local
+    # repository name for release versions
+    release: libs-release-local
 ----
 
 [source,yml,subs="verbatim,attributes"]
