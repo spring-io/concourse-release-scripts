@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2023 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,8 @@ public class ArtifactoryService {
 
 	private final RestTemplate restTemplate;
 
+	private final String project;
+
 	public ArtifactoryService(RestTemplateBuilder builder, ArtifactoryProperties artifactoryProperties) {
 		String username = artifactoryProperties.getUsername();
 		String password = artifactoryProperties.getPassword();
@@ -61,6 +63,7 @@ public class ArtifactoryService {
 			builder = builder.basicAuthentication(username, password);
 		}
 		this.rootUri = artifactoryProperties.getUrl();
+		this.project = artifactoryProperties.getProject();
 		ArtifactoryProperties.Repository repository = artifactoryProperties.getRepository();
 		this.repositories = new Repositories(repository.getStaging(), repository.getMilestone(),
 				repository.getReleaseCandidate(), repository.getRelease());
@@ -78,7 +81,8 @@ public class ArtifactoryService {
 		String buildNumber = releaseInfo.getBuildNumber();
 		logger.info("Promoting " + buildName + "/" + buildNumber + " to " + request.getTargetRepo());
 		RequestEntity<PromotionRequest> requestEntity = RequestEntity
-			.post(this.rootUri + PROMOTION_URL + buildName + "/" + buildNumber)
+			.post(this.rootUri + PROMOTION_URL + buildName + "/" + buildNumber
+					+ ((this.project != null) ? ("?project=" + this.project) : ""))
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(request);
 		try {
@@ -101,7 +105,10 @@ public class ArtifactoryService {
 		try {
 			logger.debug("Checking if already promoted");
 			ResponseEntity<BuildInfoResponse> entity = this.restTemplate
-				.getForEntity(this.rootUri + BUILD_INFO_URL + buildName + "/" + buildNumber, BuildInfoResponse.class);
+				.getForEntity(
+						this.rootUri + BUILD_INFO_URL + buildName + "/" + buildNumber
+								+ ((this.project != null) ? ("?project=" + this.project) : ""),
+						BuildInfoResponse.class);
 			Status[] statuses = entity.getBody().getBuildInfo().getStatuses();
 			Status status = (statuses != null) ? statuses[0] : null;
 			if (status == null) {

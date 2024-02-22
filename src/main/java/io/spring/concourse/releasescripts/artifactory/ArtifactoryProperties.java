@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2023 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ public class ArtifactoryProperties {
 
 	private String password;
 
+	private String project;
+
 	private final Repository repository = new Repository();
 
 	public String getUrl() {
@@ -57,6 +59,14 @@ public class ArtifactoryProperties {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getProject() {
+		return this.project;
+	}
+
+	public void setProject(String project) {
+		this.project = project;
 	}
 
 	public Repository getRepository() {

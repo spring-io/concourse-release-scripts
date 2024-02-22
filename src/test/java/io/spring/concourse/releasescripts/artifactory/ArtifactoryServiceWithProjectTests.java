@@ -20,17 +20,18 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 
 /**
- * Tests for {@link ArtifactoryService}.
+ * Tests for {@link ArtifactoryService} with a project.
  *
  * @author Madhura Bhave
  * @author Brian Clozel
  */
-@RestClientTest(value = ArtifactoryService.class, properties = "artifactory.url=https://repo.spring.io")
+@RestClientTest(value = ArtifactoryService.class,
+		properties = { "artifactory.url=https://repo.spring.io", "artifactory.project=test" })
 @EnableConfigurationProperties(ArtifactoryProperties.class)
-class ArtifactoryServiceTests extends AbstractArtifactoryServiceTests {
+class ArtifactoryServiceWithProjectTests extends AbstractArtifactoryServiceTests {
 
-	ArtifactoryServiceTests() {
-		super("");
+	ArtifactoryServiceWithProjectTests() {
+		super("?project=test");
 	}
 
 }
